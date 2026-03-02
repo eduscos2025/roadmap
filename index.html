@@ -6,11 +6,33 @@
 <title>Café Manager — Live Roadmap</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=JetBrains+Mono:wght@400;600&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
-:root{--mocha:#4E342E;--mocha-d:#3E2723;--mocha-l:#795548;--cream:#FFF8F0;--cream-d:#F5EDE4;--cream-dd:#EDE0D6;--amber:#F57F17;--amber-l:#FFB300;--green:#2E7D32;--green-l:#43A047;--blue:#1565C0;--blue-l:#1E88E5;--purple:#6A1B9A;--purple-l:#8E24AA;--red:#B71C1C;--red-l:#E53935;--text:#1C1008;--text-s:#6D5147;--border:#E8D8CC;--border-d:#D9C8BC;--shadow:0 2px 16px rgba(78,52,46,.10);--shadow-lg:0 8px 40px rgba(78,52,46,.18);--r:14px}
+:root{
+  --mocha:#4E342E;--mocha-d:#3E2723;--mocha-l:#795548;
+  --cream:#FFF8F0;--cream-d:#F5EDE4;--cream-dd:#EDE0D6;
+  --amber:#F57F17;--amber-l:#FFB300;
+  --green:#2E7D32;--green-l:#43A047;
+  --blue:#1565C0;--blue-l:#1E88E5;
+  --purple:#6A1B9A;--purple-l:#8E24AA;
+  --red:#B71C1C;--red-l:#E53935;
+  --text:#1C1008;--text-s:#6D5147;
+  --border:#E8D8CC;--border-d:#D9C8BC;
+  --shadow:0 2px 16px rgba(78,52,46,.10);
+  --shadow-lg:0 8px 40px rgba(78,52,46,.18);
+  --r:14px;
+}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;overflow-x:hidden}
 body::before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");pointer-events:none;z-index:0}
+
+/* LOADING */
+.loading-screen{position:fixed;inset:0;background:var(--mocha-d);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:9999;transition:opacity .5s}
+.loading-screen.hidden{opacity:0;pointer-events:none}
+.loading-logo{font-family:'Playfair Display',serif;font-size:32px;color:#FFF8F0}
+.loading-logo em{color:var(--amber-l);font-style:italic}
+.spin{width:34px;height:34px;border:3px solid rgba(255,255,255,.15);border-top-color:var(--amber-l);border-radius:50%;animation:spin .8s linear infinite}
+.loading-msg{font-size:12px;color:#B39D97;font-family:'JetBrains Mono',monospace}
+
 /* HEADER */
 .hdr{background:var(--mocha-d);padding:22px 22px 16px;position:relative;overflow:hidden;z-index:1}
 .hdr::after{content:'☕';position:absolute;right:-10px;top:-40px;font-size:170px;opacity:.04;pointer-events:none;transform:rotate(-15deg)}
@@ -20,77 +42,79 @@ body::before{content:'';position:fixed;inset:0;background:url("data:image/svg+xm
 .hdr-title em{color:var(--amber-l);font-style:italic}
 .hdr-right{display:flex;flex-direction:column;align-items:flex-end;gap:7px;flex-shrink:0}
 .hdr-btns{display:flex;gap:7px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
-.sync-badge{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.13);border-radius:30px;padding:5px 12px;font-size:11px;font-weight:600;color:#D7CCC8;cursor:default;transition:all .3s}
-.sync-dot{width:7px;height:7px;border-radius:50%;background:#66BB6A;flex-shrink:0;animation:pulse 2s infinite}
-.sync-badge.syncing .sync-dot{background:var(--amber-l);animation:spin .8s linear infinite}
-.sync-badge.error .sync-dot{background:var(--red-l);animation:none}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.sync-badge{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.13);border-radius:30px;padding:5px 12px;font-size:11px;font-weight:600;color:#D7CCC8}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#888;flex-shrink:0}
+.sync-badge.live .sync-dot{background:#66BB6A;animation:pulse 2s infinite}
+.sync-badge.busy .sync-dot{background:var(--amber-l);animation:spin .8s linear infinite}
+.sync-badge.err .sync-dot{background:var(--red-l)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes spin{to{transform:rotate(360deg)}}
 .btn-hdr{border:none;border-radius:9px;padding:7px 14px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;white-space:nowrap}
-.btn-amber{background:var(--amber);color:#fff}
-.btn-amber:hover{background:var(--amber-l);transform:translateY(-1px)}
-.btn-ghost{background:rgba(255,255,255,.1);color:#D7CCC8;border:1px solid rgba(255,255,255,.14)}
-.btn-ghost:hover{background:rgba(255,255,255,.18);color:#fff}
+.btn-amber{background:var(--amber);color:#fff}.btn-amber:hover{background:var(--amber-l);transform:translateY(-1px)}
+.btn-ghost{background:rgba(255,255,255,.1);color:#D7CCC8;border:1px solid rgba(255,255,255,.14)}.btn-ghost:hover{background:rgba(255,255,255,.18);color:#fff}
 .user-chip{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.15);border-radius:30px;padding:4px 11px 4px 4px;cursor:pointer;transition:all .2s}
 .user-chip:hover{background:rgba(255,255,255,.16)}
-.user-avatar{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
+.uav{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
 .user-name-lbl{font-size:11px;font-weight:600;color:#D7CCC8}
 .online-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
-.online-label{font-size:9px;color:rgba(255,255,255,.35);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:1px}
-.avatar-sm{width:19px;height:19px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;border:1.5px solid var(--mocha-d);position:relative}
+.online-lbl{font-size:9px;color:rgba(255,255,255,.35);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:1px}
+.av-sm{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;border:1.5px solid var(--mocha-d)}
 .hdr-stats{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
 .stat-pill{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.11);border-radius:30px;padding:4px 11px;font-size:11px;font-weight:600;color:#FFF8F0;display:flex;align-items:center;gap:5px}
-.s-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.sdot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+
 /* PROGRESS */
 .prog-bar{background:var(--mocha-l);padding:9px 22px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.06);position:sticky;top:0;z-index:50}
-.pb-label{font-size:10px;font-weight:700;color:#D7CCC8;white-space:nowrap;letter-spacing:.5px}
+.pb-lbl{font-size:10px;font-weight:700;color:#D7CCC8;white-space:nowrap;letter-spacing:.5px}
 .pb-track{flex:1;height:6px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden}
 .pb-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--amber),var(--amber-l));transition:width .6s cubic-bezier(.4,0,.2,1)}
 .pb-pct{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--amber-l);min-width:32px;text-align:right}
-/* FILTER */
+
+/* FILTERS */
 .filter-row{display:flex;gap:5px;padding:11px 16px;overflow-x:auto;background:var(--cream-d);border-bottom:1px solid var(--border);position:sticky;top:34px;z-index:49}
 .filter-row::-webkit-scrollbar{display:none}
 .ftab{flex-shrink:0;border:1.5px solid var(--border);background:var(--cream);border-radius:30px;padding:4px 12px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;color:var(--text-s);cursor:pointer;transition:all .2s;white-space:nowrap}
 .ftab:hover{border-color:var(--mocha-l);color:var(--mocha)}
 .ftab.active{background:var(--mocha);color:#fff;border-color:var(--mocha)}
+
 /* MAIN */
 .main{padding:16px;max-width:920px;margin:0 auto;position:relative;z-index:1;padding-bottom:76px}
+
 /* PHASE */
 .phase{margin-bottom:18px;border-radius:var(--r);border:1.5px solid var(--border);background:#fff;box-shadow:var(--shadow);overflow:hidden;transition:box-shadow .2s}
 .phase:hover{box-shadow:var(--shadow-lg)}
 .phase-hdr{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1.5px solid var(--border)}
-.phase-icon-btn{font-size:20px;cursor:pointer;flex-shrink:0;padding:2px 3px;border-radius:5px;border:1.5px dashed transparent;transition:all .2s}
-.phase-icon-btn:hover{border-color:var(--border-d);background:var(--cream-d)}
-.phase-info{flex:1;min-width:0}
-.phase-name{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--mocha);cursor:pointer;border-radius:5px;padding:1px 3px;transition:background .15s;display:inline-block;max-width:100%;word-break:break-word}
-.phase-name:hover{background:var(--cream-dd)}
-.phase-desc{font-size:11px;color:var(--text-s);line-height:1.4;cursor:pointer;border-radius:4px;padding:1px 3px;transition:background .15s;word-break:break-word}
-.phase-desc:hover{background:var(--cream-dd)}
-.phase-last{font-size:10px;color:#A1887F;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:4px;margin-top:2px;flex-wrap:wrap}
-.mini-av{width:13px;height:13px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#fff;flex-shrink:0}
-.phase-actions{display:flex;align-items:center;gap:5px;flex-shrink:0}
-.phase-badge{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.4px;border-radius:20px;padding:2px 9px;text-transform:uppercase;cursor:pointer;transition:opacity .2s}
-.phase-badge:hover{opacity:.75}
+.ph-icon{font-size:20px;cursor:pointer;flex-shrink:0;padding:2px 3px;border-radius:5px;border:1.5px dashed transparent;transition:all .2s}
+.ph-icon:hover{border-color:var(--border-d);background:var(--cream-d)}
+.ph-info{flex:1;min-width:0}
+.ph-name{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--mocha);cursor:pointer;border-radius:5px;padding:1px 3px;transition:background .15s;display:inline-block;max-width:100%;word-break:break-word}
+.ph-name:hover{background:var(--cream-dd)}
+.ph-desc{font-size:11px;color:var(--text-s);line-height:1.4;cursor:pointer;border-radius:4px;padding:1px 3px;transition:background .15s;word-break:break-word}
+.ph-desc:hover{background:var(--cream-dd)}
+.ph-last{font-size:10px;color:#A1887F;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:4px;margin-top:3px}
+.ph-actions{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.ph-badge{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.4px;border-radius:20px;padding:2px 9px;text-transform:uppercase;cursor:pointer}
 .icon-btn{background:transparent;border:1.5px solid var(--border);border-radius:7px;width:27px;height:27px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;transition:all .2s;flex-shrink:0}
 .icon-btn:hover{border-color:var(--mocha-l);background:var(--cream-d)}
-.icon-btn.danger:hover{border-color:var(--red-l);background:#FFEBEE;color:var(--red)}
+.icon-btn.del:hover{border-color:var(--red-l);background:#FFEBEE;color:var(--red)}
 .chevron{font-size:12px;color:var(--text-s);transition:transform .25s;cursor:pointer;padding:3px}
 .phase.collapsed .chevron{transform:rotate(-90deg)}
-.phase-count{font-size:10px;color:var(--text-s);font-family:'JetBrains Mono',monospace;white-space:nowrap}
+.ph-count{font-size:10px;color:var(--text-s);font-family:'JetBrains Mono',monospace;white-space:nowrap}
+
 /* TASK */
 .task-list{padding:2px 0 4px}
 .phase.collapsed .task-list,.phase.collapsed .task-add-row{display:none}
-.task{display:flex;align-items:flex-start;gap:9px;padding:8px 16px;border-bottom:1px solid #F5EDE4;transition:background .15s;position:relative}
+.task{display:flex;align-items:flex-start;gap:9px;padding:8px 16px;border-bottom:1px solid #F5EDE4;transition:background .15s}
 .task:last-child{border-bottom:none}
 .task:hover{background:#FFFBF8}
-.task-check{flex-shrink:0;width:18px;height:18px;margin-top:2px;border-radius:5px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer;transition:all .2s}
-.task.done .task-check{background:var(--green);border-color:var(--green);color:#fff}
+.task-chk{flex-shrink:0;width:18px;height:18px;margin-top:2px;border-radius:5px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer;transition:all .2s}
+.task.done .task-chk{background:var(--green);border-color:var(--green);color:#fff}
 .task-body{flex:1;min-width:0}
 .task-name{font-size:13px;font-weight:500;color:var(--text);line-height:1.35;margin-bottom:2px;word-break:break-word}
 .task.done .task-name{text-decoration:line-through;color:var(--text-s)}
 .task-detail{font-size:11px;color:var(--text-s);line-height:1.45;word-break:break-word;margin-bottom:3px}
 .task-footer{display:flex;gap:3px;flex-wrap:wrap;align-items:center}
-.tag{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;border-radius:3px;padding:1px 5px;letter-spacing:.3px}
+.tag{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;border-radius:3px;padding:1px 5px}
 .tag-blocker{background:#FFEBEE;color:var(--red)}
 .tag-security{background:#F3E5F5;color:var(--purple)}
 .tag-ux{background:#E8F5E9;color:var(--green)}
@@ -98,128 +122,131 @@ body::before{content:'';position:fixed;inset:0;background:url("data:image/svg+xm
 .tag-infra{background:#E3F2FD;color:var(--blue)}
 .tag-growth{background:#F9FBE7;color:#558B2F}
 .tag-custom{background:var(--cream-dd);color:var(--mocha)}
-.task-pri{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;text-transform:uppercase;letter-spacing:.3px}
+.task-pri{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;text-transform:uppercase}
 .pri-critical{background:#FFEBEE;color:var(--red)}
 .pri-high{background:#FFF3E0;color:#BF360C}
 .pri-medium{background:#FFF9C4;color:#F57F00}
 .pri-low{background:#F5F5F5;color:#757575}
-/* last edit hint on task */
-.task-edit-meta{font-size:9px;color:#BCAAA4;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:3px;flex-shrink:0;white-space:nowrap;margin-left:auto;opacity:0;transition:opacity .15s;align-self:center}
-.task:hover .task-edit-meta{opacity:1}
+.task-meta{font-size:9px;color:#BCAAA4;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:3px;flex-shrink:0;white-space:nowrap;margin-left:auto;opacity:0;transition:opacity .15s;align-self:center}
+.task:hover .task-meta{opacity:1}
 .task-ctrl{display:flex;gap:3px;flex-shrink:0;opacity:0;transition:opacity .15s;align-self:center;margin-left:6px}
 .task:hover .task-ctrl{opacity:1}
 .task-ctrl .icon-btn{width:24px;height:24px;font-size:11px}
-/* ADD TASK */
 .task-add-row{padding:6px 16px 8px;border-top:1px dashed var(--border)}
-.btn-add-task{background:transparent;border:1.5px dashed var(--border-d);border-radius:7px;padding:6px 13px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;color:var(--text-s);cursor:pointer;transition:all .2s;width:100%;text-align:left}
-.btn-add-task:hover{border-color:var(--mocha-l);color:var(--mocha);background:var(--cream-d)}
+.btn-add{background:transparent;border:1.5px dashed var(--border-d);border-radius:7px;padding:6px 13px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;color:var(--text-s);cursor:pointer;transition:all .2s;width:100%;text-align:left}
+.btn-add:hover{border-color:var(--mocha-l);color:var(--mocha);background:var(--cream-d)}
+
 /* BADGE COLORS */
-.badge-green{background:#E8F5E9;color:var(--green)}
-.badge-amber{background:#FFF3E0;color:var(--amber)}
-.badge-blue{background:#E3F2FD;color:var(--blue)}
-.badge-purple{background:#F3E5F5;color:var(--purple)}
-.badge-red{background:#FFEBEE;color:var(--red)}
-.badge-mocha{background:var(--cream-dd);color:var(--mocha)}
-.empty-phase{padding:14px 16px;text-align:center;color:var(--text-s);font-size:12px;font-style:italic}
+.bc-green{background:#E8F5E9;color:var(--green)}
+.bc-amber{background:#FFF3E0;color:var(--amber)}
+.bc-blue{background:#E3F2FD;color:var(--blue)}
+.bc-purple{background:#F3E5F5;color:var(--purple)}
+.bc-red{background:#FFEBEE;color:var(--red)}
+.bc-mocha{background:var(--cream-dd);color:var(--mocha)}
+.empty-ph{padding:14px 16px;text-align:center;color:var(--text-s);font-size:12px;font-style:italic}
+
 /* ACTIVITY DRAWER */
-.drawer-overlay{position:fixed;inset:0;background:rgba(30,10,0,.35);z-index:150;backdrop-filter:blur(3px);transition:opacity .25s}
-.drawer-overlay.hidden{opacity:0;pointer-events:none}
-.drawer{position:fixed;top:0;right:0;bottom:0;width:360px;max-width:96vw;background:#fff;z-index:151;box-shadow:-6px 0 36px rgba(78,52,46,.18);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1)}
-.drawer.open{transform:translateX(0)}
-.drawer-hdr{padding:16px 16px 12px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--mocha-d)}
-.drawer-title{font-family:'Playfair Display',serif;font-size:16px;color:#FFF8F0}
-.drawer-close{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);border-radius:7px;width:28px;height:28px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:#D7CCC8;transition:all .2s}
-.drawer-close:hover{background:rgba(255,255,255,.2);color:#fff}
-.drawer-filter{display:flex;gap:4px;padding:9px 12px;border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0;background:var(--cream-d)}
-.drawer-filter::-webkit-scrollbar{display:none}
+.drw-overlay{position:fixed;inset:0;background:rgba(30,10,0,.35);z-index:150;backdrop-filter:blur(3px)}
+.drw-overlay.hidden{display:none}
+.drw{position:fixed;top:0;right:0;bottom:0;width:360px;max-width:96vw;background:#fff;z-index:151;box-shadow:-6px 0 36px rgba(78,52,46,.18);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1)}
+.drw.open{transform:translateX(0)}
+.drw-hdr{padding:16px 16px 12px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--mocha-d)}
+.drw-title{font-family:'Playfair Display',serif;font-size:16px;color:#FFF8F0}
+.drw-close{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);border-radius:7px;width:28px;height:28px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:#D7CCC8}
+.drw-close:hover{background:rgba(255,255,255,.2);color:#fff}
+.drw-filters{display:flex;gap:4px;padding:9px 12px;border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0;background:var(--cream-d)}
+.drw-filters::-webkit-scrollbar{display:none}
 .af-tab{flex-shrink:0;border:1.5px solid var(--border);background:var(--cream);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:700;color:var(--text-s);cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif}
 .af-tab:hover{border-color:var(--mocha-l);color:var(--mocha)}
 .af-tab.active{background:var(--mocha);color:#fff;border-color:var(--mocha)}
-.drawer-body{flex:1;overflow-y:auto;padding:0}
-.drawer-body::-webkit-scrollbar{width:3px}
-.drawer-body::-webkit-scrollbar-thumb{background:var(--border-d);border-radius:4px}
-.activity-empty{padding:36px 20px;text-align:center;color:var(--text-s);font-size:13px}
-.date-divider{padding:5px 14px 3px;font-size:9px;font-weight:700;color:var(--text-s);letter-spacing:.5px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;background:var(--cream-d);border-bottom:1px solid var(--border)}
-.act-item{display:flex;gap:9px;padding:9px 14px;border-bottom:1px solid #FAF0EA;border-left:3px solid transparent;transition:background .15s}
-.act-item:hover{background:#FFFBF8}
-.act-item[data-action="added"]{border-left-color:#43A047}
-.act-item[data-action="updated"]{border-left-color:var(--blue-l)}
-.act-item[data-action="deleted"]{border-left-color:var(--red-l)}
-.act-item[data-action="completed"]{border-left-color:var(--green)}
-.act-item[data-action="reopened"]{border-left-color:var(--amber)}
-.act-item[data-action="moved"]{border-left-color:var(--purple-l)}
+.drw-body{flex:1;overflow-y:auto}
+.drw-body::-webkit-scrollbar{width:3px}
+.drw-body::-webkit-scrollbar-thumb{background:var(--border-d);border-radius:4px}
+.act-empty{padding:36px 20px;text-align:center;color:var(--text-s);font-size:13px}
+.act-date{padding:5px 14px 3px;font-size:9px;font-weight:700;color:var(--text-s);letter-spacing:.5px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;background:var(--cream-d);border-bottom:1px solid var(--border)}
+.act-row{display:flex;gap:9px;padding:9px 14px;border-bottom:1px solid #FAF0EA;border-left:3px solid transparent}
+.act-row[data-a="added"]{border-left-color:#43A047}
+.act-row[data-a="updated"]{border-left-color:var(--blue-l)}
+.act-row[data-a="deleted"]{border-left-color:var(--red-l)}
+.act-row[data-a="completed"]{border-left-color:var(--green)}
+.act-row[data-a="reopened"]{border-left-color:var(--amber)}
+.act-row[data-a="moved"]{border-left-color:var(--purple-l)}
 .act-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
-.act-body{flex:1;min-width:0}
-.act-line{font-size:12px;line-height:1.45;margin-bottom:2px;word-break:break-word}
-.act-user{font-weight:700;color:var(--mocha)}
+.act-bd{flex:1;min-width:0}
+.act-line{font-size:12px;line-height:1.45;margin-bottom:1px;word-break:break-word}
+.act-who{font-weight:700;color:var(--mocha)}
 .act-verb{color:var(--text-s)}
-.act-target{font-weight:600;color:var(--text)}
-.act-detail-txt{font-size:10px;color:var(--text-s);line-height:1.4;word-break:break-word}
-.act-time-row{display:flex;align-items:center;gap:5px;margin-top:2px}
-.act-icon{font-size:11px}
+.act-what{font-weight:600;color:var(--text)}
+.act-sub{font-size:10px;color:var(--text-s);line-height:1.4;margin-bottom:2px}
 .act-time{font-size:9px;color:#A1887F;font-family:'JetBrains Mono',monospace}
+
 /* MODAL */
-.modal-overlay{position:fixed;inset:0;background:rgba(30,10,0,.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);animation:fadeIn .15s}
+.modal-overlay{position:fixed;inset:0;background:rgba(30,10,0,.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
 .modal-overlay.hidden{display:none}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.modal{background:#fff;border-radius:var(--r);box-shadow:var(--shadow-lg);width:100%;max-width:480px;max-height:90vh;overflow-y:auto;animation:slideUp .2s cubic-bezier(.4,0,.2,1)}
-@keyframes slideUp{from{transform:translateY(18px);opacity:0}to{transform:translateY(0);opacity:1}}
-.modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:15px 17px 11px;border-bottom:1.5px solid var(--border)}
-.modal-title{font-family:'Playfair Display',serif;font-size:16px;color:var(--mocha)}
-.modal-close{background:transparent;border:1.5px solid var(--border);border-radius:7px;width:28px;height:28px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .2s}
-.modal-close:hover{border-color:var(--red-l);background:#FFEBEE;color:var(--red)}
-.modal-body{padding:16px}
+.modal{background:#fff;border-radius:var(--r);box-shadow:var(--shadow-lg);width:100%;max-width:480px;max-height:90vh;overflow-y:auto;animation:up .2s cubic-bezier(.4,0,.2,1)}
+@keyframes up{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+.m-hdr{display:flex;align-items:center;justify-content:space-between;padding:15px 17px 11px;border-bottom:1.5px solid var(--border)}
+.m-title{font-family:'Playfair Display',serif;font-size:16px;color:var(--mocha)}
+.m-close{background:transparent;border:1.5px solid var(--border);border-radius:7px;width:28px;height:28px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.m-close:hover{border-color:var(--red-l);background:#FFEBEE;color:var(--red)}
+.m-body{padding:16px}
 .field{margin-bottom:13px}
 .field label{display:block;font-size:11px;font-weight:700;color:var(--text-s);margin-bottom:5px;letter-spacing:.3px;text-transform:uppercase}
-.field input,.field textarea,.field select{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--cream);transition:border-color .2s;outline:none}
+.field input,.field textarea,.field select{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--cream);outline:none;transition:border-color .2s}
 .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--mocha-l)}
 .field textarea{resize:vertical;min-height:60px;line-height:1.5}
 .field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.tags-editor{display:flex;flex-wrap:wrap;gap:5px}
-.tag-toggle{border:1.5px solid var(--border);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;background:var(--cream);font-family:'DM Sans',sans-serif}
-.tag-toggle.active{color:#fff}
-.tag-toggle[data-tag="blocker"].active{background:var(--red);border-color:var(--red)}
-.tag-toggle[data-tag="security"].active{background:var(--purple-l);border-color:var(--purple-l)}
-.tag-toggle[data-tag="ux"].active{background:var(--green-l);border-color:var(--green-l)}
-.tag-toggle[data-tag="revenue"].active{background:#E65100;border-color:#E65100}
-.tag-toggle[data-tag="infra"].active{background:var(--blue-l);border-color:var(--blue-l)}
-.tag-toggle[data-tag="growth"].active{background:#558B2F;border-color:#558B2F}
-.custom-tag-input{border:1.5px dashed var(--border-d);border-radius:20px;padding:3px 10px;font-size:11px;cursor:text;color:var(--text-s);background:var(--cream);font-family:'DM Sans',sans-serif;width:105px;outline:none;transition:border-color .2s}
-.custom-tag-input:focus{border-color:var(--mocha-l)}
+.tags-ed{display:flex;flex-wrap:wrap;gap:5px}
+.tag-tgl{border:1.5px solid var(--border);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;background:var(--cream);font-family:'DM Sans',sans-serif}
+.tag-tgl.on{color:#fff}
+.tag-tgl[data-tag="blocker"].on{background:var(--red);border-color:var(--red)}
+.tag-tgl[data-tag="security"].on{background:var(--purple-l);border-color:var(--purple-l)}
+.tag-tgl[data-tag="ux"].on{background:var(--green-l);border-color:var(--green-l)}
+.tag-tgl[data-tag="revenue"].on{background:#E65100;border-color:#E65100}
+.tag-tgl[data-tag="infra"].on{background:var(--blue-l);border-color:var(--blue-l)}
+.tag-tgl[data-tag="growth"].on{background:#558B2F;border-color:#558B2F}
+.custom-tag{border:1.5px dashed var(--border-d);border-radius:20px;padding:3px 10px;font-size:11px;color:var(--text-s);background:var(--cream);font-family:'DM Sans',sans-serif;width:105px;outline:none;transition:border-color .2s}
+.custom-tag:focus{border-color:var(--mocha-l)}
 .badge-picker{display:flex;gap:6px;flex-wrap:wrap}
-.badge-opt{border:2px solid var(--border);border-radius:20px;padding:3px 11px;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;cursor:pointer;text-transform:uppercase;letter-spacing:.4px;transition:all .2s}
-.badge-opt.sel{border-width:2.5px;transform:scale(1.05)}
-.modal-footer{display:flex;gap:7px;padding:11px 17px;border-top:1.5px solid var(--border);justify-content:flex-end}
-.btn-primary{background:var(--mocha);color:#fff;border:none;border-radius:8px;padding:8px 18px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
-.btn-primary:hover{background:var(--mocha-l)}
-.btn-secondary{background:transparent;color:var(--text-s);border:1.5px solid var(--border);border-radius:8px;padding:8px 15px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
-.btn-secondary:hover{border-color:var(--mocha-l);color:var(--mocha)}
-.btn-danger{background:#FFEBEE;color:var(--red);border:1.5px solid #FFCDD2;border-radius:8px;padding:8px 14px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;margin-right:auto}
-.btn-danger:hover{background:var(--red);color:#fff}
-/* COLOR SWATCHES */
-.color-swatches{display:flex;gap:8px;flex-wrap:wrap}
+.bp-opt{border:2px solid var(--border);border-radius:20px;padding:3px 11px;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;cursor:pointer;text-transform:uppercase;transition:all .2s}
+.bp-opt.sel{border-width:2.5px;transform:scale(1.05)}
+.m-foot{display:flex;gap:7px;padding:11px 17px;border-top:1.5px solid var(--border);justify-content:flex-end}
+.btn-ok{background:var(--mocha);color:#fff;border:none;border-radius:8px;padding:8px 18px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-ok:hover{background:var(--mocha-l)}
+.btn-cancel{background:transparent;color:var(--text-s);border:1.5px solid var(--border);border-radius:8px;padding:8px 15px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-cancel:hover{border-color:var(--mocha-l);color:var(--mocha)}
+.btn-del{background:#FFEBEE;color:var(--red);border:1.5px solid #FFCDD2;border-radius:8px;padding:8px 14px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;margin-right:auto}
+.btn-del:hover{background:var(--red);color:#fff}
+.swatches{display:flex;gap:8px;flex-wrap:wrap}
 .swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:700}
 .swatch.sel{border-color:var(--mocha);transform:scale(1.15)}
-/* CONFIRM */
-.confirm-box{background:#fff;border-radius:var(--r);box-shadow:var(--shadow-lg);padding:24px 20px;max-width:320px;width:100%;text-align:center;animation:slideUp .2s}
+.confirm-box{background:#fff;border-radius:var(--r);box-shadow:var(--shadow-lg);padding:24px 20px;max-width:320px;width:100%;text-align:center;animation:up .2s}
 .confirm-title{font-family:'Playfair Display',serif;font-size:15px;color:var(--mocha);margin-bottom:6px}
 .confirm-desc{font-size:12px;color:var(--text-s);line-height:1.5;margin-bottom:16px}
 .confirm-btns{display:flex;gap:8px;justify-content:center}
+
 /* TOAST */
-#toast{position:fixed;bottom:72px;left:50%;transform:translateX(-50%);background:var(--mocha-d);color:#FFF8F0;border-radius:30px;padding:8px 18px;font-size:12px;font-weight:600;z-index:999;pointer-events:none;opacity:0;transition:opacity .3s;white-space:nowrap;box-shadow:var(--shadow-lg)}
+#toast{position:fixed;bottom:72px;left:50%;transform:translateX(-50%);background:var(--mocha-d);color:#FFF8F0;border-radius:30px;padding:8px 18px;font-size:12px;font-weight:600;z-index:9999;pointer-events:none;opacity:0;transition:opacity .3s;white-space:nowrap;box-shadow:var(--shadow-lg)}
 #toast.show{opacity:1}
+
 /* FOOTER */
-.sticky-footer{position:fixed;bottom:0;left:0;right:0;background:var(--mocha-d);border-top:2px solid var(--amber);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;z-index:100;flex-wrap:wrap}
-.sf-left{font-family:'Playfair Display',serif;font-size:12px;color:#FFF8F0;flex-shrink:0}
-.sf-chips{display:flex;gap:5px;flex-wrap:wrap}
-.sf-chip{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;border-radius:20px;padding:3px 9px;color:#fff}
-.no-results{text-align:center;padding:36px 20px;color:var(--text-s);font-size:13px}
-/* act badge */
-#actBadge{background:var(--amber-l);border-radius:99px;padding:1px 6px;font-size:9px;margin-left:2px}
+.footer{position:fixed;bottom:0;left:0;right:0;background:var(--mocha-d);border-top:2px solid var(--amber);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;z-index:100;flex-wrap:wrap}
+.footer-l{font-family:'Playfair Display',serif;font-size:12px;color:#FFF8F0;flex-shrink:0}
+.f-chips{display:flex;gap:5px;flex-wrap:wrap}
+.f-chip{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;border-radius:20px;padding:3px 9px;color:#fff}
+.no-res{text-align:center;padding:36px 20px;color:var(--text-s);font-size:13px}
+#act-badge{background:var(--amber-l);border-radius:99px;padding:1px 6px;font-size:9px;margin-left:2px;display:none}
 </style>
 </head>
 <body>
 
+<div class="loading-screen" id="ls">
+  <div class="loading-logo">☕ <em>Café Manager</em></div>
+  <div class="spin"></div>
+  <div class="loading-msg" id="lmsg">Connecting to Firebase…</div>
+</div>
+
+<!-- HEADER -->
 <div class="hdr">
   <div class="hdr-row">
     <div>
@@ -228,116 +255,106 @@ body::before{content:'';position:fixed;inset:0;background:url("data:image/svg+xm
     </div>
     <div class="hdr-right">
       <div class="hdr-btns">
-        <div class="sync-badge" id="syncBadge"><span class="sync-dot" id="syncDot"></span><span id="syncLabel">Loading…</span></div>
-        <div class="user-chip" onclick="openIdentityModal()" id="userChip">
-          <div class="user-avatar" id="hdrAv" style="background:#888">?</div>
+        <div class="sync-badge busy" id="syncBadge"><span class="sync-dot"></span><span id="syncLbl">Connecting…</span></div>
+        <div class="user-chip" onclick="openIdModal(false)">
+          <div class="uav" id="hdrAv" style="background:#888">?</div>
           <span class="user-name-lbl" id="hdrName">Set your name</span>
         </div>
-        <button class="btn-hdr btn-ghost" onclick="openDrawer()">📋 Activity <span id="actBadge" style="display:none">0</span></button>
-        <button class="btn-hdr btn-amber" onclick="openPhaseModal()">＋ Phase</button>
+        <button class="btn-hdr btn-ghost" onclick="openDrawer()">📋 Activity <span id="act-badge">0</span></button>
+        <button class="btn-hdr btn-amber" onclick="openPhaseModal(null)">＋ Phase</button>
       </div>
       <div class="online-row">
-        <span class="online-label">Online:</span>
-        <div id="onlineUsers" style="display:flex;gap:3px;align-items:center"></div>
+        <span class="online-lbl">Online:</span>
+        <div id="onlineDiv" style="display:flex;gap:3px;align-items:center"><span style="font-size:9px;color:rgba(255,255,255,.3)">…</span></div>
       </div>
     </div>
   </div>
   <div class="hdr-stats">
-    <div class="stat-pill"><span class="s-dot" style="background:#66BB6A"></span><span id="sDone">0</span> Done</div>
-    <div class="stat-pill"><span class="s-dot" style="background:var(--amber-l)"></span><span id="sBlock">0</span> Blockers</div>
-    <div class="stat-pill"><span class="s-dot" style="background:#64B5F6"></span><span id="sPhases">0</span> Phases</div>
-    <div class="stat-pill"><span class="s-dot" style="background:#CE93D8"></span><span id="sTotal">0</span> Tasks</div>
+    <div class="stat-pill"><span class="sdot" style="background:#66BB6A"></span><span id="sDone">0</span>&nbsp;Done</div>
+    <div class="stat-pill"><span class="sdot" style="background:var(--amber-l)"></span><span id="sBlock">0</span>&nbsp;Blockers</div>
+    <div class="stat-pill"><span class="sdot" style="background:#64B5F6"></span><span id="sPh">0</span>&nbsp;Phases</div>
+    <div class="stat-pill"><span class="sdot" style="background:#CE93D8"></span><span id="sTotal">0</span>&nbsp;Tasks</div>
   </div>
 </div>
 
 <div class="prog-bar">
-  <span class="pb-label">PROGRESS</span>
+  <span class="pb-lbl">PROGRESS</span>
   <div class="pb-track"><div class="pb-fill" id="pbFill" style="width:0%"></div></div>
   <span class="pb-pct" id="pbPct">0%</span>
 </div>
 
-<div class="filter-row" id="filterRow">
-  <button class="ftab active" onclick="setFilter('all',this)">All</button>
+<div class="filter-row" id="filterRow"></div>
+<div class="main" id="main"><div class="no-res" style="margin-top:60px">⏳ Loading…</div></div>
+
+<div class="footer">
+  <div class="footer-l">🔥 Firebase Live</div>
+  <div class="f-chips" id="fChips"></div>
 </div>
-
-<div class="main" id="main"><div class="no-results" style="margin-top:40px">⏳ Loading…</div></div>
-
-<div class="sticky-footer">
-  <div class="sf-left">Café Manager Roadmap</div>
-  <div class="sf-chips" id="sfChips"></div>
-</div>
-
 <div id="toast"></div>
 
 <!-- ACTIVITY DRAWER -->
-<div class="drawer-overlay hidden" id="drawerOverlay" onclick="closeDrawer()"></div>
-<div class="drawer" id="drawer">
-  <div class="drawer-hdr">
-    <div class="drawer-title">📋 Activity Log</div>
-    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+<div class="drw-overlay hidden" id="drwOverlay" onclick="closeDrawer()"></div>
+<div class="drw" id="drw">
+  <div class="drw-hdr">
+    <div class="drw-title">📋 Activity Log</div>
+    <button class="drw-close" onclick="closeDrawer()">✕</button>
   </div>
-  <div class="drawer-filter">
-    <button class="af-tab active" onclick="setActFilter('all',this)">All</button>
-    <button class="af-tab" onclick="setActFilter('added',this)">➕ Added</button>
-    <button class="af-tab" onclick="setActFilter('updated',this)">✏️ Updated</button>
-    <button class="af-tab" onclick="setActFilter('completed',this)">✅ Done</button>
-    <button class="af-tab" onclick="setActFilter('deleted',this)">🗑 Deleted</button>
-    <button class="af-tab" onclick="setActFilter('moved',this)">↕ Moved</button>
+  <div class="drw-filters">
+    <button class="af-tab active" onclick="setAF('all',this)">All</button>
+    <button class="af-tab" onclick="setAF('added',this)">➕ Added</button>
+    <button class="af-tab" onclick="setAF('updated',this)">✏️ Updated</button>
+    <button class="af-tab" onclick="setAF('completed',this)">✅ Done</button>
+    <button class="af-tab" onclick="setAF('deleted',this)">🗑 Deleted</button>
+    <button class="af-tab" onclick="setAF('moved',this)">↕ Moved</button>
   </div>
-  <div class="drawer-body" id="drawerBody"></div>
+  <div class="drw-body" id="drwBody"><div class="act-empty">No activity yet</div></div>
 </div>
 
 <!-- IDENTITY MODAL -->
-<div class="modal-overlay hidden" id="identityModal">
+<div class="modal-overlay hidden" id="idModal">
   <div class="modal" style="max-width:360px">
-    <div class="modal-hdr">
-      <div class="modal-title">👤 Who are you?</div>
-      <button class="modal-close" id="identityClose" onclick="closeModal('identityModal')">✕</button>
+    <div class="m-hdr">
+      <div class="m-title">👤 Who are you?</div>
+      <button class="m-close" id="idClose" onclick="closeModal('idModal')">✕</button>
     </div>
-    <div class="modal-body">
-      <div class="field"><label>Your Name</label><input id="iName" placeholder="e.g. Rohan, Priya, Dev…" maxlength="24"/></div>
-      <div class="field">
-        <label>Pick an avatar colour</label>
-        <div class="color-swatches" id="colorSwatches"></div>
-      </div>
-      <p style="font-size:11px;color:var(--text-s);margin-top:6px;line-height:1.5">Every change you make will show your name and avatar in the Activity Log, visible to all collaborators.</p>
+    <div class="m-body">
+      <div class="field"><label>Your Name</label><input id="iName" placeholder="e.g. Rohan, Priya…" maxlength="24"/></div>
+      <div class="field"><label>Avatar Colour</label><div class="swatches" id="swatches"></div></div>
+      <p style="font-size:11px;color:var(--text-s);margin-top:6px;line-height:1.5">Every change you make shows your name in the Activity Log — visible to all collaborators in real time.</p>
     </div>
-    <div class="modal-footer">
-      <button class="btn-primary" onclick="saveIdentity()">Save & Continue →</button>
-    </div>
+    <div class="m-foot"><button class="btn-ok" onclick="saveIdentity()">Save &amp; Continue →</button></div>
   </div>
 </div>
 
 <!-- PHASE MODAL -->
 <div class="modal-overlay hidden" id="phaseModal">
   <div class="modal">
-    <div class="modal-hdr">
-      <div class="modal-title" id="phaseModalTitle">Add Phase</div>
-      <button class="modal-close" onclick="closeModal('phaseModal')">✕</button>
+    <div class="m-hdr">
+      <div class="m-title" id="phaseModalTitle">Add Phase</div>
+      <button class="m-close" onclick="closeModal('phaseModal')">✕</button>
     </div>
-    <div class="modal-body">
+    <div class="m-body">
       <div class="field"><label>Phase Name</label><input id="pName" placeholder="e.g. Phase 1 — Ship Before First Sale"/></div>
-      <div class="field"><label>Description</label><textarea id="pDesc" placeholder="What is the goal of this phase?"></textarea></div>
+      <div class="field"><label>Description</label><textarea id="pDesc" placeholder="Goal of this phase…"></textarea></div>
       <div class="field-row">
-        <div class="field"><label>Icon</label><input id="pIcon" placeholder="🚀" maxlength="4" style="font-size:19px;text-align:center"/></div>
-        <div class="field"><label>Badge Label</label><input id="pBadgeLabel" placeholder="SHIP NOW" maxlength="16"/></div>
+        <div class="field"><label>Icon</label><input id="pIcon" maxlength="4" style="font-size:19px;text-align:center"/></div>
+        <div class="field"><label>Badge Label</label><input id="pBadge" placeholder="SHIP NOW" maxlength="16"/></div>
       </div>
-      <div class="field">
-        <label>Badge Colour</label>
-        <div class="badge-picker" id="badgePicker">
-          <div class="badge-opt badge-green sel" data-color="green" onclick="selBadge(this)">DONE</div>
-          <div class="badge-opt badge-amber" data-color="amber" onclick="selBadge(this)">NOW</div>
-          <div class="badge-opt badge-blue" data-color="blue" onclick="selBadge(this)">NEXT</div>
-          <div class="badge-opt badge-purple" data-color="purple" onclick="selBadge(this)">FUTURE</div>
-          <div class="badge-opt badge-red" data-color="red" onclick="selBadge(this)">CRITICAL</div>
-          <div class="badge-opt badge-mocha" data-color="mocha" onclick="selBadge(this)">CUSTOM</div>
+      <div class="field"><label>Badge Colour</label>
+        <div class="badge-picker">
+          <div class="bp-opt bc-green sel" data-c="green" onclick="pickBadge(this)">DONE</div>
+          <div class="bp-opt bc-amber" data-c="amber" onclick="pickBadge(this)">NOW</div>
+          <div class="bp-opt bc-blue" data-c="blue" onclick="pickBadge(this)">NEXT</div>
+          <div class="bp-opt bc-purple" data-c="purple" onclick="pickBadge(this)">FUTURE</div>
+          <div class="bp-opt bc-red" data-c="red" onclick="pickBadge(this)">CRITICAL</div>
+          <div class="bp-opt bc-mocha" data-c="mocha" onclick="pickBadge(this)">CUSTOM</div>
         </div>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn-danger" id="phaseDeleteBtn" onclick="deletePhase()" style="display:none">Delete Phase</button>
-      <button class="btn-secondary" onclick="closeModal('phaseModal')">Cancel</button>
-      <button class="btn-primary" onclick="savePhase()">Save Phase</button>
+    <div class="m-foot">
+      <button class="btn-del" id="phDelBtn" onclick="deletePhase()" style="display:none">Delete Phase</button>
+      <button class="btn-cancel" onclick="closeModal('phaseModal')">Cancel</button>
+      <button class="btn-ok" onclick="savePhase()">Save Phase</button>
     </div>
   </div>
 </div>
@@ -345,526 +362,615 @@ body::before{content:'';position:fixed;inset:0;background:url("data:image/svg+xm
 <!-- TASK MODAL -->
 <div class="modal-overlay hidden" id="taskModal">
   <div class="modal">
-    <div class="modal-hdr">
-      <div class="modal-title" id="taskModalTitle">Add Task</div>
-      <button class="modal-close" onclick="closeModal('taskModal')">✕</button>
+    <div class="m-hdr">
+      <div class="m-title" id="taskModalTitle">Add Task</div>
+      <button class="m-close" onclick="closeModal('taskModal')">✕</button>
     </div>
-    <div class="modal-body">
+    <div class="m-body">
       <div class="field"><label>Task Name</label><input id="tName" placeholder="What needs to be done?"/></div>
-      <div class="field"><label>Details / Notes</label><textarea id="tDetail" placeholder="Context, acceptance criteria, notes…"></textarea></div>
+      <div class="field"><label>Details / Notes</label><textarea id="tDetail" placeholder="Context, acceptance criteria…"></textarea></div>
       <div class="field-row">
         <div class="field"><label>Priority</label>
           <select id="tPri"><option value="">None</option><option value="critical">🔴 Critical</option><option value="high">🟠 High</option><option value="medium">🟡 Medium</option><option value="low">⚪ Low</option></select>
         </div>
         <div class="field"><label>Status</label>
-          <select id="tDone"><option value="false">⬜ Pending</option><option value="true">✅ Done</option></select>
+          <select id="tStatus"><option value="false">⬜ Pending</option><option value="true">✅ Done</option></select>
         </div>
       </div>
-      <div class="field">
-        <label>Tags</label>
-        <div class="tags-editor">
-          <div class="tag-toggle" data-tag="blocker" onclick="toggleTag(this)">🚨 Blocker</div>
-          <div class="tag-toggle" data-tag="security" onclick="toggleTag(this)">🔒 Security</div>
-          <div class="tag-toggle" data-tag="ux" onclick="toggleTag(this)">✨ UX</div>
-          <div class="tag-toggle" data-tag="revenue" onclick="toggleTag(this)">💰 Revenue</div>
-          <div class="tag-toggle" data-tag="infra" onclick="toggleTag(this)">⚙️ Infra</div>
-          <div class="tag-toggle" data-tag="growth" onclick="toggleTag(this)">📈 Growth</div>
-          <input class="custom-tag-input" id="customTag" placeholder="+ custom tag"/>
+      <div class="field"><label>Tags</label>
+        <div class="tags-ed">
+          <div class="tag-tgl" data-tag="blocker" onclick="toggleTag(this)">🚨 Blocker</div>
+          <div class="tag-tgl" data-tag="security" onclick="toggleTag(this)">🔒 Security</div>
+          <div class="tag-tgl" data-tag="ux" onclick="toggleTag(this)">✨ UX</div>
+          <div class="tag-tgl" data-tag="revenue" onclick="toggleTag(this)">💰 Revenue</div>
+          <div class="tag-tgl" data-tag="infra" onclick="toggleTag(this)">⚙️ Infra</div>
+          <div class="tag-tgl" data-tag="growth" onclick="toggleTag(this)">📈 Growth</div>
+          <input class="custom-tag" id="customTag" placeholder="+ custom tag"/>
         </div>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn-danger" id="taskDeleteBtn" onclick="deleteTask()" style="display:none">Delete Task</button>
-      <button class="btn-secondary" onclick="closeModal('taskModal')">Cancel</button>
-      <button class="btn-primary" onclick="saveTask()">Save Task</button>
+    <div class="m-foot">
+      <button class="btn-del" id="taskDelBtn" onclick="deleteTask()" style="display:none">Delete Task</button>
+      <button class="btn-cancel" onclick="closeModal('taskModal')">Cancel</button>
+      <button class="btn-ok" onclick="saveTask()">Save Task</button>
     </div>
   </div>
 </div>
 
-<!-- CONFIRM MODAL -->
+<!-- CONFIRM -->
 <div class="modal-overlay hidden" id="confirmModal">
   <div class="confirm-box">
     <div style="font-size:28px;margin-bottom:8px">⚠️</div>
-    <div class="confirm-title" id="confirmTitle">Are you sure?</div>
-    <div class="confirm-desc" id="confirmDesc">This cannot be undone.</div>
+    <div class="confirm-title" id="cfTitle">Are you sure?</div>
+    <div class="confirm-desc" id="cfDesc">This cannot be undone.</div>
     <div class="confirm-btns">
-      <button class="btn-secondary" onclick="closeModal('confirmModal')">Cancel</button>
-      <button class="btn-primary" id="confirmOk" style="background:var(--red)">Delete</button>
+      <button class="btn-cancel" onclick="closeModal('confirmModal')">Cancel</button>
+      <button class="btn-ok" id="cfOk" style="background:var(--red)">Delete</button>
     </div>
   </div>
 </div>
 
-<script>
-// ── KEYS & BROADCAST ───────────────────────────────────────────────────────
-const SK='cafe-roadmap-v2', AK='cafe-roadmap-activity-v2', PK='cafe-roadmap-presence-v2', UK='cafe-roadmap-user-v1';
-const COLORS=['#4E342E','#1565C0','#2E7D32','#6A1B9A','#B71C1C','#E65100','#00695C','#AD1457','#37474F','#4527A0'];
-const ACT_ICONS={added:'➕',updated:'✏️',deleted:'🗑️',completed:'✅',reopened:'↩️',moved:'↕️'};
+<!-- ═══ ALL JS IN ONE type="module" BLOCK — Firebase imports are resolved first ═══ -->
+<script type="module">
+import { initializeApp }                          from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getDatabase, ref, set, get, onValue,
+         push, remove, serverTimestamp,
+         onDisconnect, update }                   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
-let bc; try{bc=new BroadcastChannel('cafe-roadmap');}catch(e){bc=null;}
+// ── FIREBASE INIT ───────────────────────────────────────────
+const app = initializeApp({
+  apiKey:            "AIzaSyDQhxzHLXA6_-KeEeMthu6Dz2dwh9tNRWU",
+  authDomain:        "roadmap-7bd95.firebaseapp.com",
+  databaseURL:       "https://roadmap-7bd95-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:         "roadmap-7bd95",
+  storageBucket:     "roadmap-7bd95.firebasestorage.app",
+  messagingSenderId: "744309390585",
+  appId:             "1:744309390585:web:b4a328318e38de8f297628"
+});
+const db = getDatabase(app);
 
-// ── STATE ──────────────────────────────────────────────────────────────────
-let phases=[], actLog=[], presence={}, collapsed={};
-let activeFilter='all', actFilterCur='all';
-let editingPhaseId=null, editingTaskCtx=null, selectedBadgeColor='green', activeTags=[];
-let isSaving=false, lastPH='', lastAH='';
-let selSwatchColor=COLORS[0];
-let me={id:uid(),name:'',color:COLORS[0]};
+const phasesRef   = ref(db, 'roadmap/phases');
+const activityRef = ref(db, 'roadmap/activity');
+const presenceRef = ref(db, 'roadmap/presence');
 
-// ── UTILS ──────────────────────────────────────────────────────────────────
-function uid(){return Math.random().toString(36).slice(2,9)+Date.now().toString(36);}
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function hash(o){return JSON.stringify(o);}
-function initials(n){return(n||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();}
-function relTime(ts){
-  const s=Math.floor((Date.now()-ts)/1000);
-  if(s<5)return'just now';if(s<60)return s+'s ago';
+// ── CONSTANTS ───────────────────────────────────────────────
+const COLORS     = ['#4E342E','#1565C0','#2E7D32','#6A1B9A','#B71C1C','#E65100','#00695C','#AD1457','#37474F','#4527A0'];
+const ACT_ICONS  = {added:'➕',updated:'✏️',deleted:'🗑️',completed:'✅',reopened:'↩️',moved:'↕️'};
+const KNOWN_TAGS = ['blocker','security','ux','revenue','infra','growth'];
+
+// ── STATE ───────────────────────────────────────────────────
+let phases      = [];
+let actLog      = [];
+let onlineMap   = {};
+let collapsed   = {};
+let activeFilter   = 'all';
+let actFilter      = 'all';
+let editPhaseId    = null;
+let editTaskCtx    = null;   // {phaseId, idx}
+let selBadgeColor  = 'green';
+let activeTags     = [];
+let selSwatch      = COLORS[0];
+let me = { id:'u'+Math.random().toString(36).slice(2,10), name:'', color:COLORS[0] };
+
+// ── UTILS ───────────────────────────────────────────────────
+const genId  = (p='i') => p + Math.random().toString(36).slice(2,9) + Date.now().toString(36).slice(-4);
+const esc    = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const ini    = n => (n||'?').split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase()||'?';
+const relT   = ts => {
+  if(!ts) return '';
+  const s = Math.floor((Date.now()-ts)/1000);
+  if(s<5)return'just now'; if(s<60)return s+'s ago';
   if(s<3600)return Math.floor(s/60)+'m ago';
   if(s<86400)return Math.floor(s/3600)+'h ago';
   return Math.floor(s/86400)+'d ago';
+};
+const mav = (name,color,sz=13,fs=7) =>
+  `<span style="width:${sz}px;height:${sz}px;border-radius:50%;background:${esc(color)};display:inline-flex;align-items:center;justify-content:center;font-size:${fs}px;font-weight:700;color:#fff;flex-shrink:0">${ini(name)}</span>`;
+
+function toast(msg, dur=2800) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove('show'), dur);
 }
-function toast(msg,dur=2500){
-  const t=document.getElementById('toast');
-  t.textContent=msg;t.classList.add('show');
-  clearTimeout(t._to);t._to=setTimeout(()=>t.classList.remove('show'),dur);
+function setSS(cls, lbl) {
+  document.getElementById('syncBadge').className = 'sync-badge ' + cls;
+  document.getElementById('syncLbl').textContent = lbl;
 }
-function avEl(name,color,size=22,fs=10){
-  return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};display:inline-flex;align-items:center;justify-content:center;font-size:${fs}px;font-weight:700;color:#fff;flex-shrink:0">${initials(name)}</div>`;
+function hideLoader() {
+  const ls = document.getElementById('ls');
+  ls.style.opacity = '0';
+  setTimeout(()=>ls.classList.add('hidden'), 500);
+}
+function setLMsg(m) { document.getElementById('lmsg').textContent = m; }
+
+// ── IDENTITY ────────────────────────────────────────────────
+function loadUser() {
+  try { const s=localStorage.getItem('crm-u'); if(s) me=JSON.parse(s); } catch(e){}
+  updateChip(); buildSwatches();
+  if(!me.name) openIdModal(true);
+  else startPresence();
 }
 
-// ── USER IDENTITY ──────────────────────────────────────────────────────────
-async function loadUser(){
-  try{const r=await window.storage.get(UK,false);if(r&&r.value)me=JSON.parse(r.value);}catch(e){}
-  updateUserChip();
+window.saveIdentity = function() {
+  const nm = document.getElementById('iName').value.trim();
+  if(!nm){ toast('⚠️ Please enter your name'); return; }
+  me.name=nm; me.color=selSwatch;
+  try{ localStorage.setItem('crm-u', JSON.stringify(me)); }catch(e){}
+  closeModal('idModal'); updateChip(); startPresence();
+  toast('✅ Identity saved');
+};
+
+window.openIdModal = function(force) {
   buildSwatches();
-  if(!me.name){openIdentityModal(true);}else{heartbeat();}
-}
-async function saveIdentity(){
-  const nm=document.getElementById('iName').value.trim();
-  if(!nm){toast('⚠️ Please enter your name');return;}
-  me.name=nm; me.color=selSwatchColor;
-  try{await window.storage.set(UK,JSON.stringify(me),false);}catch(e){}
-  closeModal('identityModal');
-  updateUserChip();
-  heartbeat();
-  toast('✅ Identity saved — your name will show on all changes');
-}
-function openIdentityModal(force){
-  buildSwatches();
-  document.getElementById('iName').value=me.name||'';
-  document.getElementById('identityClose').style.display=(force&&!me.name)?'none':'';
-  document.getElementById('identityModal').classList.remove('hidden');
-  setTimeout(()=>document.getElementById('iName').focus(),120);
-}
-function buildSwatches(){
-  selSwatchColor=me.color||COLORS[0];
-  document.getElementById('colorSwatches').innerHTML=COLORS.map(c=>
-    `<div class="swatch${c===selSwatchColor?' sel':''}" style="background:${c}" data-color="${c}" onclick="selSwatch(this)">${initials(me.name||'?')}</div>`
+  document.getElementById('iName').value = me.name||'';
+  document.getElementById('idClose').style.display = (force&&!me.name)?'none':'';
+  document.getElementById('idModal').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('iName').focus(), 120);
+};
+
+function buildSwatches() {
+  selSwatch = me.color||COLORS[0];
+  document.getElementById('swatches').innerHTML = COLORS.map(c=>
+    `<div class="swatch${c===selSwatch?' sel':''}" style="background:${c}" data-c="${c}" onclick="pickSwatch(this)">${ini(me.name)}</div>`
   ).join('');
 }
-function selSwatch(el){
-  selSwatchColor=el.dataset.color;
+
+window.pickSwatch = function(el) {
+  selSwatch = el.dataset.c;
   document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('sel'));
   el.classList.add('sel');
-}
-document.addEventListener('input',e=>{
-  if(e.target.id==='iName'){
-    document.querySelectorAll('.swatch').forEach(s=>s.textContent=initials(e.target.value||'?'));
-  }
+};
+
+document.addEventListener('input', e => {
+  if(e.target?.id==='iName') document.querySelectorAll('.swatch').forEach(s=>s.textContent=ini(e.target.value));
 });
-function updateUserChip(){
-  document.getElementById('hdrAv').style.background=me.color||'#888';
-  document.getElementById('hdrAv').textContent=initials(me.name);
-  document.getElementById('hdrName').textContent=me.name||'Set your name';
+
+function updateChip() {
+  document.getElementById('hdrAv').style.background = me.color||'#888';
+  document.getElementById('hdrAv').textContent = ini(me.name);
+  document.getElementById('hdrName').textContent = me.name||'Set your name';
 }
 
-// ── PRESENCE ──────────────────────────────────────────────────────────────
-async function heartbeat(){
-  if(!me.name)return;
-  try{
-    const r=await window.storage.get(PK,true);
-    let p=r?JSON.parse(r.value):{};
-    const now=Date.now();
-    Object.keys(p).forEach(k=>{if(now-p[k].ts>35000)delete p[k];});
-    p[me.id]={name:me.name,color:me.color,ts:now};
-    await window.storage.set(PK,JSON.stringify(p),true);
-    presence=p; renderPresence();
-  }catch(e){}
-}
-function renderPresence(){
-  const now=Date.now();
-  const active=Object.values(presence).filter(u=>now-u.ts<35000);
-  document.getElementById('onlineUsers').innerHTML=active.length
-    ?active.map(u=>`<div class="avatar-sm" style="background:${u.color}" title="${esc(u.name)}">${initials(u.name)}</div>`).join('')
-    :'<span style="font-size:9px;color:rgba(255,255,255,.3)">just you</span>';
-}
-setInterval(heartbeat,12000);
+// ── PRESENCE ────────────────────────────────────────────────
+let myPresRef = null;
+function startPresence() {
+  if(!me.name) return;
+  myPresRef = ref(db, 'roadmap/presence/' + me.id);
+  const data = { name:me.name, color:me.color, ts:serverTimestamp() };
+  set(myPresRef, data);
+  onDisconnect(myPresRef).remove();
+  setInterval(()=>{ if(myPresRef) update(myPresRef, {ts:serverTimestamp()}); }, 20000);
 
-// ── ACTIVITY LOG ──────────────────────────────────────────────────────────
-function logAct(action,target,detail='',phaseId='',taskId=''){
-  if(!me.name)return;
-  actLog.unshift({id:uid(),ts:Date.now(),user:me.name,color:me.color,action,target,detail,phaseId,taskId});
-  if(actLog.length>300)actLog.length=300;
-  renderActBadge();
-  if(document.getElementById('drawer').classList.contains('open'))renderDrawer();
+  onValue(presenceRef, snap => {
+    const now = Date.now(); onlineMap = {};
+    if(snap.exists()) snap.forEach(ch=>{ const u=ch.val(); if(u&&(now-u.ts)<45000) onlineMap[ch.key]=u; });
+    renderPresence();
+  });
 }
-async function persistAct(){
-  try{await window.storage.set(AK,JSON.stringify(actLog),true);lastAH=hash(actLog);}catch(e){}
+
+function renderPresence() {
+  const a = Object.values(onlineMap);
+  document.getElementById('onlineDiv').innerHTML = a.length
+    ? a.map(u=>`<div class="av-sm" style="background:${esc(u.color)}" title="${esc(u.name)}">${ini(u.name)}</div>`).join('')
+    : '<span style="font-size:9px;color:rgba(255,255,255,.3)">just you</span>';
 }
-async function loadAct(){
-  try{const r=await window.storage.get(AK,true);if(r&&r.value){actLog=JSON.parse(r.value);lastAH=hash(actLog);}}catch(e){}
-  renderActBadge();renderDrawer();
+
+// ── ACTIVITY ────────────────────────────────────────────────
+function logAct(action, target, detail='', phaseId='', taskId='') {
+  if(!me.name) return;
+  push(activityRef, { ts:serverTimestamp(), user:me.name, color:me.color, action, target:target||'', detail:detail||'', phaseId:phaseId||'', taskId:taskId||'' });
 }
-function renderActBadge(){
-  const n=actLog.filter(a=>Date.now()-a.ts<3600000).length;
-  const b=document.getElementById('actBadge');
-  b.textContent=n>9?'9+':n; b.style.display=n>0?'inline':'none';
-}
-function setActFilter(f,btn){
-  actFilterCur=f;
+
+window.setAF = function(f, btn) {
+  actFilter = f;
   document.querySelectorAll('.af-tab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderDrawer();
-}
-function renderDrawer(){
-  const body=document.getElementById('drawerBody');
-  let entries=actFilterCur==='all'?actLog:actLog.filter(a=>a.action===actFilterCur);
-  if(!entries.length){body.innerHTML=`<div class="activity-empty">${actFilterCur==='all'?'No activity yet — start editing the roadmap!':'No entries for this filter.'}</div>`;return;}
-  let html='',lastDate='';
+  btn.classList.add('active'); renderDrawer();
+};
+
+function renderDrawer() {
+  const body = document.getElementById('drwBody');
+  const entries = actFilter==='all' ? actLog : actLog.filter(a=>a.action===actFilter);
+  if(!entries.length){ body.innerHTML=`<div class="act-empty">${actFilter==='all'?'No activity yet — start editing!':'No entries for this filter.'}</div>`; return; }
+  let html='', lastD='';
   entries.forEach(a=>{
-    const d=new Date(a.ts);
+    const d=new Date(a.ts||Date.now());
     const ds=d.toLocaleDateString('en-IN',{weekday:'short',month:'short',day:'numeric'});
-    if(ds!==lastDate){html+=`<div class="date-divider">${ds}</div>`;lastDate=ds;}
-    html+=`<div class="act-item" data-action="${a.action}">
-      <div class="act-av" style="background:${a.color}">${initials(a.user)}</div>
-      <div class="act-body">
-        <div class="act-line"><span class="act-user">${esc(a.user)}</span> <span class="act-verb">${a.action}</span> <span class="act-target">"${esc(a.target)}"</span></div>
-        ${a.detail?`<div class="act-detail-txt">${esc(a.detail)}</div>`:''}
-        <div class="act-time-row"><span class="act-icon">${ACT_ICONS[a.action]||'·'}</span><span class="act-time">${relTime(a.ts)} · ${d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</span></div>
-      </div>
-    </div>`;
+    if(ds!==lastD){ html+=`<div class="act-date">${ds}</div>`; lastD=ds; }
+    html+=`<div class="act-row" data-a="${esc(a.action)}">
+      <div class="act-av" style="background:${esc(a.color)}">${ini(a.user)}</div>
+      <div class="act-bd">
+        <div class="act-line"><span class="act-who">${esc(a.user)}</span> <span class="act-verb">${esc(a.action)}</span> <span class="act-what">"${esc(a.target)}"</span></div>
+        ${a.detail?`<div class="act-sub">${esc(a.detail)}</div>`:''}
+        <div class="act-time">${ACT_ICONS[a.action]||'·'} ${relT(a.ts)} · ${d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</div>
+      </div></div>`;
   });
-  body.innerHTML=html;
-}
-function openDrawer(){renderDrawer();document.getElementById('drawer').classList.add('open');document.getElementById('drawerOverlay').classList.remove('hidden');document.getElementById('actBadge').style.display='none';}
-function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('drawerOverlay').classList.add('hidden');}
-
-// ── STORAGE ────────────────────────────────────────────────────────────────
-async function load(){
-  setSS('syncing','Loading…');
-  try{
-    const r=await window.storage.get(SK,true);
-    if(r&&r.value){phases=JSON.parse(r.value);}
-    else{phases=deepClone(DEFAULT_PHASES);await persistPhases();}
-    lastPH=hash(phases);setSS('ok','Synced');
-  }catch(e){
-    try{phases=deepClone(DEFAULT_PHASES);}catch(_){}
-    setSS('error','Offline');toast('⚠️ Using default data — storage unavailable');
-  }
-  await loadAct();render();
-}
-function deepClone(o){return JSON.parse(JSON.stringify(o));}
-async function persistPhases(){
-  if(isSaving)return;isSaving=true;setSS('syncing','Saving…');
-  try{await window.storage.set(SK,JSON.stringify(phases),true);lastPH=hash(phases);setSS('ok','Saved ✓');if(bc)bc.postMessage({type:'update'});}
-  catch(e){setSS('error','Save failed');toast('⚠️ Could not save');}
-  isSaving=false;
-}
-async function persist(){await Promise.all([persistPhases(),persistAct()]);}
-function setSS(s,l){document.getElementById('syncBadge').className='sync-badge'+(s!=='ok'?' '+s:'');document.getElementById('syncLabel').textContent=l;}
-
-// ── BROADCAST + POLL ──────────────────────────────────────────────────────
-if(bc)bc.onmessage=async()=>pollChanges();
-setInterval(async()=>{await pollChanges();heartbeat();},8000);
-async function pollChanges(){
-  try{
-    const[rp,ra]=await Promise.all([window.storage.get(SK,true),window.storage.get(AK,true)]);
-    let changed=false;
-    if(rp&&rp.value){const inc=JSON.parse(rp.value);if(hash(inc)!==lastPH){phases=inc;lastPH=hash(phases);changed=true;}}
-    if(ra&&ra.value){const inc=JSON.parse(ra.value);if(hash(inc)!==lastAH){actLog=inc;lastAH=hash(actLog);renderActBadge();if(document.getElementById('drawer').classList.contains('open'))renderDrawer();}}
-    if(changed){render();toast('🔄 Roadmap updated by another user');setSS('ok','Updated ↓');}
-  }catch(e){}
+  body.innerHTML = html;
 }
 
-// ── RENDER ─────────────────────────────────────────────────────────────────
-function render(){
+function renderActBadge() {
+  const n = actLog.filter(a=>a.ts>Date.now()-3600000).length;
+  const b = document.getElementById('act-badge');
+  b.textContent = n>9?'9+':n; b.style.display = n?'inline':'none';
+}
+
+window.openDrawer = function() {
+  renderDrawer();
+  document.getElementById('drw').classList.add('open');
+  document.getElementById('drwOverlay').classList.remove('hidden');
+  document.getElementById('act-badge').style.display='none';
+};
+window.closeDrawer = function() {
+  document.getElementById('drw').classList.remove('open');
+  document.getElementById('drwOverlay').classList.add('hidden');
+};
+
+// ── FIREBASE LISTENERS ──────────────────────────────────────
+function initListeners() {
+  onValue(phasesRef, snap => {
+    if(!snap.exists()) { setLMsg('First run — seeding defaults…'); seedDefaults(); return; }
+    const raw = snap.val();
+    phases = Object.entries(raw).map(([id,v])=>({
+      id, icon:v.icon||'📋', name:v.name||'Untitled', desc:v.desc||'',
+      badgeLabel:v.badgeLabel||'', badgeColor:v.badgeColor||'mocha',
+      order:v.order??999,
+      tasks: Array.isArray(v.tasks)?v.tasks : (v.tasks?Object.values(v.tasks):[])
+    })).sort((a,b)=>a.order-b.order);
+    setSS('live','🔥 Live'); render(); hideLoader();
+  }, err=>{ setSS('err','DB Error'); setLMsg('❌ '+err.message); hideLoader(); toast('❌ '+err.message,5000); });
+
+  onValue(ref(db,'roadmap/activity'), snap=>{
+    actLog=[];
+    if(snap.exists()) snap.forEach(ch=>{ const v=ch.val(); if(v) actLog.unshift({...v,_k:ch.key}); });
+    renderActBadge();
+    if(document.getElementById('drw').classList.contains('open')) renderDrawer();
+  }, {/* limit handled by query below */});
+
+  // Replace activity listener with limited query
+  // (onValue above replaced by:)
+  onValue(ref(db,'roadmap/activity'), snap=>{
+    actLog=[];
+    if(snap.exists()){
+      const all=[];
+      snap.forEach(ch=>{ const v=ch.val(); if(v) all.push({...v,_k:ch.key}); });
+      // sort newest first, keep 150
+      actLog = all.sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,150);
+    }
+    renderActBadge();
+    if(document.getElementById('drw').classList.contains('open')) renderDrawer();
+  });
+
+  onValue(ref(db,'.info/connected'), snap=>{
+    setSS(snap.val()?'live':'busy', snap.val()?'🔥 Live':'Reconnecting…');
+  });
+}
+
+// ── WRITE ───────────────────────────────────────────────────
+function writeToDB() {
+  const data = {};
+  phases.forEach((p,i)=>{ data[p.id]={ icon:p.icon, name:p.name, desc:p.desc||'', badgeLabel:p.badgeLabel||'', badgeColor:p.badgeColor||'mocha', order:i, tasks:p.tasks?.length?p.tasks:[] }; });
+  return set(phasesRef, data);
+}
+
+// ── SEED ────────────────────────────────────────────────────
+function seedDefaults() {
+  const defaults = getDefaults();
+  const data = {};
+  defaults.forEach((p,i)=>{ data[p.id]={ icon:p.icon, name:p.name, desc:p.desc, badgeLabel:p.badgeLabel, badgeColor:p.badgeColor, order:i, tasks:p.tasks }; });
+  set(phasesRef, data).then(()=>toast('✅ Roadmap initialised!')).catch(e=>{ toast('❌ '+e.message,5000); hideLoader(); });
+}
+
+// ── RENDER ──────────────────────────────────────────────────
+function render() {
   let done=0,total=0,blockers=0;
-  phases.forEach(p=>p.tasks.forEach(t=>{total++;if(t.done)done++;if((t.tags||[]).includes('blocker')&&!t.done)blockers++;}));
-  document.getElementById('sDone').textContent=done;
-  document.getElementById('sBlock').textContent=blockers;
-  document.getElementById('sPhases').textContent=phases.length;
-  document.getElementById('sTotal').textContent=total;
-  const pct=total?Math.round((done/total)*100):0;
-  document.getElementById('pbFill').style.width=pct+'%';
-  document.getElementById('pbPct').textContent=pct+'%';
-  document.getElementById('sfChips').innerHTML=`<span class="sf-chip" style="background:#2E7D32">${done} Done</span><span class="sf-chip" style="background:${blockers>0?'#E65100':'#555'}">${blockers} Blockers</span><span class="sf-chip" style="background:#1565C0">${total-done} Remaining</span>`;
+  phases.forEach(p=>(p.tasks||[]).forEach(t=>{ total++; if(t.done)done++; if((t.tags||[]).includes('blocker')&&!t.done)blockers++; }));
+  document.getElementById('sDone').textContent  = done;
+  document.getElementById('sBlock').textContent = blockers;
+  document.getElementById('sPh').textContent    = phases.length;
+  document.getElementById('sTotal').textContent = total;
+  const pct = total?Math.round(done/total*100):0;
+  document.getElementById('pbFill').style.width = pct+'%';
+  document.getElementById('pbPct').textContent  = pct+'%';
+  document.getElementById('fChips').innerHTML   =
+    `<span class="f-chip" style="background:#2E7D32">${done} Done</span>
+     <span class="f-chip" style="background:${blockers?'#E65100':'#555'}">${blockers} Blockers</span>
+     <span class="f-chip" style="background:#1565C0">${total-done} Remaining</span>`;
 
-  const fr=document.getElementById('filterRow');
-  fr.innerHTML=`<button class="ftab${activeFilter==='all'?' active':''}" onclick="setFilter('all',this)">All</button>`;
-  phases.forEach(p=>{
-    const s=p.name.replace(/Phase \d+\s*[—–-]\s*/,'').split(' ').slice(0,4).join(' ');
-    fr.innerHTML+=`<button class="ftab${activeFilter===p.id?' active':''}" onclick="setFilter('${p.id}',this)">${p.icon} ${s}</button>`;
-  });
-  fr.innerHTML+=`<button class="ftab${activeFilter==='blockers'?' active':''}" onclick="setFilter('blockers',this)">🚨 Blockers</button>`;
+  // Filters
+  const fr = document.getElementById('filterRow');
+  let ftabs = `<button class="ftab${activeFilter==='all'?' active':''}" onclick="setFilter('all',this)">All</button>`;
+  phases.forEach(p=>{ const s=p.name.replace(/Phase \d+\s*[—–-]\s*/,'').split(' ').slice(0,4).join(' '); ftabs+=`<button class="ftab${activeFilter===p.id?' active':''}" onclick="setFilter('${p.id}',this)">${esc(p.icon)} ${esc(s)}</button>`; });
+  ftabs+=`<button class="ftab${activeFilter==='blockers'?' active':''}" onclick="setFilter('blockers',this)">🚨 Blockers</button>`;
+  fr.innerHTML = ftabs;
 
+  // Phases
   let html='';
-  const vis=activeFilter==='all'?phases:activeFilter==='blockers'?phases:phases.filter(p=>p.id===activeFilter);
+  const vis = activeFilter==='all'?phases:activeFilter==='blockers'?phases:phases.filter(p=>p.id===activeFilter);
   vis.forEach(p=>{
-    let tasks=p.tasks;
-    if(activeFilter==='blockers')tasks=tasks.filter(t=>(t.tags||[]).includes('blocker'));
-    if(activeFilter==='blockers'&&!tasks.length)return;
-    const isC=collapsed[p.id], doneC=tasks.filter(t=>t.done).length;
-    const phaseActs=actLog.filter(a=>a.phaseId===p.id).slice(0,1);
-    const le=phaseActs[0];
-    html+=`<div class="phase${isC?' collapsed':''}" id="phase-${p.id}">
+    let tasks = p.tasks||[];
+    if(activeFilter==='blockers'){ tasks=tasks.filter(t=>(t.tags||[]).includes('blocker')); if(!tasks.length)return; }
+    const isC=!!collapsed[p.id], dC=tasks.filter(t=>t.done).length;
+    const le=actLog.find(a=>a.phaseId===p.id);
+    html+=`<div class="phase${isC?' collapsed':''}" id="ph-${p.id}">
       <div class="phase-hdr">
-        <span class="phase-icon-btn" onclick="openPhaseModal('${p.id}')" title="Edit phase">${p.icon||'📋'}</span>
-        <div class="phase-info">
-          <div class="phase-name" onclick="openPhaseModal('${p.id}')">${esc(p.name)}</div>
-          <div class="phase-desc" onclick="openPhaseModal('${p.id}')">${esc(p.desc||'')}</div>
-          ${le?`<div class="phase-last">${avEl(le.user,le.color,13,7)}<span>${esc(le.user)}</span><span style="color:var(--border-d)">·</span><span>${relTime(le.ts)}</span></div>`:''}
+        <span class="ph-icon" onclick="openPhaseModal('${p.id}')">${esc(p.icon)}</span>
+        <div class="ph-info">
+          <div class="ph-name" onclick="openPhaseModal('${p.id}')">${esc(p.name)}</div>
+          <div class="ph-desc" onclick="openPhaseModal('${p.id}')">${esc(p.desc)}</div>
+          ${le?`<div class="ph-last">${mav(le.user,le.color)} <span>${esc(le.user)}</span> <span style="color:var(--border-d)">·</span> <span>${relT(le.ts)}</span></div>`:''}
         </div>
-        <div class="phase-actions">
-          <span class="phase-count">${doneC}/${tasks.length}</span>
-          <span class="phase-badge badge-${p.badgeColor||'mocha'}" onclick="openPhaseModal('${p.id}')">${esc(p.badgeLabel||'')}</span>
-          <button class="icon-btn" onclick="movePhase('${p.id}',-1)" title="Move up">↑</button>
-          <button class="icon-btn" onclick="movePhase('${p.id}',1)" title="Move down">↓</button>
-          <span class="chevron" onclick="toggleCollapse('${p.id}')">▾</span>
+        <div class="ph-actions">
+          <span class="ph-count">${dC}/${tasks.length}</span>
+          <span class="ph-badge bc-${esc(p.badgeColor)}" onclick="openPhaseModal('${p.id}')">${esc(p.badgeLabel)}</span>
+          <button class="icon-btn" onclick="mvPhase('${p.id}',-1)">↑</button>
+          <button class="icon-btn" onclick="mvPhase('${p.id}',1)">↓</button>
+          <span class="chevron" onclick="togCollapse('${p.id}')">▾</span>
         </div>
       </div>
       <div class="task-list">
-        ${!tasks.length?`<div class="empty-phase">No tasks yet — add one below ↓</div>`:''}
-        ${tasks.map(t=>renderTask(p.id,t)).join('')}
+        ${!tasks.length?'<div class="empty-ph">No tasks yet — add one below ↓</div>':''}
+        ${tasks.map((t,ti)=>renderTask(p.id,t,ti)).join('')}
       </div>
-      <div class="task-add-row"><button class="btn-add-task" onclick="openTaskModal('${p.id}')">＋ Add Task to this phase</button></div>
+      <div class="task-add-row"><button class="btn-add" onclick="openTaskModal('${p.id}',null)">＋ Add Task</button></div>
     </div>`;
   });
-  if(!html)html='<div class="no-results">No items match this filter.</div>';
-  document.getElementById('main').innerHTML=html;
+  document.getElementById('main').innerHTML = html||'<div class="no-res">No items match this filter.</div>';
 }
 
-function renderTask(phaseId,t){
-  const le=actLog.filter(a=>a.taskId===t.id&&a.action!=='deleted').slice(0,1)[0];
-  const knownTags=['blocker','security','ux','revenue','infra','growth'];
-  const tags=(t.tags||[]).map(tg=>`<span class="tag tag-${knownTags.includes(tg)?tg:'custom'}">${tg.toUpperCase()}</span>`).join('');
-  const pri=t.priority?`<span class="task-pri pri-${t.priority}">${t.priority}</span>`:'';
-  const editMeta=le?`<div class="task-edit-meta">${avEl(le.user,le.color,13,7)}<span>${esc(le.user)}</span><span style="color:var(--border-d)">·</span><span>${relTime(le.ts)}</span></div>`:'';
-  return`<div class="task${t.done?' done':''}" id="t-${t.id}">
-    <div class="task-check" onclick="toggleDone('${phaseId}','${t.id}')">${t.done?'✓':''}</div>
+function renderTask(phaseId,t,ti) {
+  const le   = actLog.find(a=>a.taskId===t.id&&a.action!=='deleted');
+  const tags = (t.tags||[]).map(tg=>`<span class="tag tag-${KNOWN_TAGS.includes(tg)?tg:'custom'}">${esc(tg.toUpperCase())}</span>`).join('');
+  const pri  = t.priority?`<span class="task-pri pri-${esc(t.priority)}">${esc(t.priority)}</span>`:'';
+  const meta = le?`<div class="task-meta">${mav(le.user,le.color)} <span>${esc(le.user)}</span>&nbsp;·&nbsp;${relT(le.ts)}</div>`:'';
+  return `<div class="task${t.done?' done':''}">
+    <div class="task-chk" onclick="togDone('${phaseId}',${ti})">${t.done?'✓':''}</div>
     <div class="task-body">
       <div class="task-name">${esc(t.name)}</div>
       ${t.detail?`<div class="task-detail">${esc(t.detail)}</div>`:''}
       ${(tags||pri)?`<div class="task-footer">${tags}${pri}</div>`:''}
     </div>
-    ${editMeta}
+    ${meta}
     <div class="task-ctrl">
-      <button class="icon-btn" onclick="openTaskModal('${phaseId}','${t.id}')" title="Edit">✏️</button>
-      <button class="icon-btn danger" onclick="confirmDeleteTask('${phaseId}','${t.id}')" title="Delete">🗑</button>
+      <button class="icon-btn" onclick="openTaskModal('${phaseId}',${ti})">✏️</button>
+      <button class="icon-btn del" onclick="cfmDelTask('${phaseId}',${ti})">🗑</button>
     </div>
   </div>`;
 }
 
-// ── ACTIONS ────────────────────────────────────────────────────────────────
-function toggleCollapse(id){collapsed[id]=!collapsed[id];render();}
-function setFilter(f,btn){activeFilter=f;document.querySelectorAll('.ftab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');render();}
+// ── ACTIONS ─────────────────────────────────────────────────
+window.togCollapse = id=>{ collapsed[id]=!collapsed[id]; render(); };
+window.setFilter   = (f,btn)=>{ activeFilter=f; document.querySelectorAll('.ftab').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); render(); };
 
-async function toggleDone(phaseId,taskId){
-  const p=phases.find(x=>x.id===phaseId),t=p?.tasks.find(x=>x.id===taskId);
-  if(!t)return;
-  t.done=!t.done;
-  logAct(t.done?'completed':'reopened',t.name,`in "${p.name.replace(/Phase \d+\s*[—–-]\s*/,'')}"`,phaseId,taskId);
-  render();await persist();
-}
-async function movePhase(id,dir){
-  const i=phases.findIndex(p=>p.id===id);if(i<0)return;
-  const ni=i+dir;if(ni<0||ni>=phases.length)return;
+window.togDone = async (phaseId,ti)=>{
+  const p=phases.find(x=>x.id===phaseId); if(!p||!p.tasks[ti])return;
+  const t=p.tasks[ti]; t.done=!t.done;
+  logAct(t.done?'completed':'reopened',t.name,`in "${p.name.replace(/Phase \d+\s*[—–-]\s*/,'')}"`,phaseId,t.id||'');
+  try{ await writeToDB(); }catch(e){ toast('❌ '+e.message); }
+};
+
+window.mvPhase = async (id,dir)=>{
+  const i=phases.findIndex(p=>p.id===id); if(i<0)return;
+  const ni=i+dir; if(ni<0||ni>=phases.length)return;
   [phases[i],phases[ni]]=[phases[ni],phases[i]];
   logAct('moved',phases[ni].name,dir<0?'Moved up':'Moved down');
-  render();await persist();
-}
+  try{ await writeToDB(); }catch(e){ toast('❌ '+e.message); }
+};
 
-// ── PHASE MODAL ────────────────────────────────────────────────────────────
-function openPhaseModal(pid){
-  editingPhaseId=pid||null;
-  const p=pid?phases.find(x=>x.id===pid):null;
-  document.getElementById('phaseModalTitle').textContent=p?'Edit Phase':'Add Phase';
-  document.getElementById('pName').value=p?p.name:'';
-  document.getElementById('pDesc').value=p?(p.desc||''):'';
-  document.getElementById('pIcon').value=p?(p.icon||'📋'):'📋';
-  document.getElementById('pBadgeLabel').value=p?(p.badgeLabel||''):'';
-  selectedBadgeColor=p?(p.badgeColor||'green'):'green';
-  document.querySelectorAll('.badge-opt').forEach(el=>el.classList.toggle('sel',el.dataset.color===selectedBadgeColor));
-  document.getElementById('phaseDeleteBtn').style.display=p?'block':'none';
+// ── PHASE MODAL ──────────────────────────────────────────────
+window.openPhaseModal = function(pid) {
+  editPhaseId = pid||null;
+  const p = pid?phases.find(x=>x.id===pid):null;
+  document.getElementById('phaseModalTitle').textContent = p?'Edit Phase':'Add Phase';
+  document.getElementById('pName').value = p?p.name:'';
+  document.getElementById('pDesc').value = p?p.desc||'':'';
+  document.getElementById('pIcon').value = p?p.icon||'📋':'📋';
+  document.getElementById('pBadge').value = p?p.badgeLabel||'':'';
+  selBadgeColor = p?p.badgeColor||'green':'green';
+  document.querySelectorAll('.bp-opt').forEach(el=>el.classList.toggle('sel',el.dataset.c===selBadgeColor));
+  document.getElementById('phDelBtn').style.display = p?'block':'none';
   document.getElementById('phaseModal').classList.remove('hidden');
   setTimeout(()=>document.getElementById('pName').focus(),100);
-}
-function selBadge(el){selectedBadgeColor=el.dataset.color;document.querySelectorAll('.badge-opt').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');}
+};
 
-async function savePhase(){
+window.pickBadge = function(el) {
+  selBadgeColor=el.dataset.c;
+  document.querySelectorAll('.bp-opt').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+};
+
+window.savePhase = async function() {
   const name=document.getElementById('pName').value.trim();
-  if(!name){toast('⚠️ Phase name is required');return;}
-  const isNew=!editingPhaseId;
-  if(editingPhaseId){
-    const p=phases.find(x=>x.id===editingPhaseId);
+  if(!name){ toast('⚠️ Phase name is required'); return; }
+  const isNew=!editPhaseId;
+  if(editPhaseId){
+    const p=phases.find(x=>x.id===editPhaseId);
     if(p){
-      const old=p.name;
-      p.name=name;p.desc=document.getElementById('pDesc').value.trim();
+      const old=p.name; p.name=name; p.desc=document.getElementById('pDesc').value.trim();
       p.icon=document.getElementById('pIcon').value.trim()||'📋';
-      p.badgeLabel=document.getElementById('pBadgeLabel').value.trim();
-      p.badgeColor=selectedBadgeColor;
-      logAct('updated',name,old!==name?`Renamed from "${old}"`:'Phase details updated',editingPhaseId);
+      p.badgeLabel=document.getElementById('pBadge').value.trim();
+      p.badgeColor=selBadgeColor;
+      logAct('updated',name,old!==name?`Renamed from "${old}"`:'Phase details updated',editPhaseId);
     }
-  }else{
-    const nid=uid();
-    phases.push({id:nid,icon:document.getElementById('pIcon').value.trim()||'📋',name,desc:document.getElementById('pDesc').value.trim(),badgeLabel:document.getElementById('pBadgeLabel').value.trim()||'CUSTOM',badgeColor:selectedBadgeColor,tasks:[]});
+  } else {
+    const nid=genId('p');
+    phases.push({id:nid,icon:document.getElementById('pIcon').value.trim()||'📋',name,
+      desc:document.getElementById('pDesc').value.trim(),
+      badgeLabel:document.getElementById('pBadge').value.trim()||'CUSTOM',
+      badgeColor:selBadgeColor,tasks:[]});
     logAct('added',name,'New phase created',nid);
   }
-  closeModal('phaseModal');render();await persist();
-  toast(isNew?'✅ Phase added':'✅ Phase updated');
-}
-async function deletePhase(){
-  if(!editingPhaseId)return;
-  const p=phases.find(x=>x.id===editingPhaseId);
-  showConfirm(`Delete "${p?.name}"?`,`All ${p?.tasks?.length||0} tasks will be permanently removed.`,async()=>{
-    logAct('deleted',p.name,`Phase with ${p.tasks.length} task(s) removed`);
-    phases=phases.filter(x=>x.id!==editingPhaseId);
-    closeModal('phaseModal');render();await persist();toast('🗑 Phase deleted');
-  });
-}
+  closeModal('phaseModal');
+  try{ await writeToDB(); toast(isNew?'✅ Phase added':'✅ Phase updated'); }
+  catch(e){ toast('❌ '+e.message); }
+};
 
-// ── TASK MODAL ─────────────────────────────────────────────────────────────
-function openTaskModal(phaseId,taskId){
-  editingTaskCtx={phaseId,taskId:taskId||null};
-  const p=phases.find(x=>x.id===phaseId),t=taskId?p?.tasks.find(x=>x.id===taskId):null;
+window.deletePhase = function() {
+  if(!editPhaseId)return;
+  const p=phases.find(x=>x.id===editPhaseId);
+  showConfirm(`Delete "${p?.name}"?`,`All ${p?.tasks?.length||0} tasks will be removed.`, async()=>{
+    logAct('deleted',p.name,`Phase with ${p.tasks.length} tasks removed`);
+    try{ await remove(ref(db,'roadmap/phases/'+editPhaseId)); closeModal('phaseModal'); toast('🗑 Phase deleted'); }
+    catch(e){ toast('❌ '+e.message); }
+  });
+};
+
+// ── TASK MODAL ───────────────────────────────────────────────
+window.openTaskModal = function(phaseId, taskIdx) {
+  editTaskCtx={phaseId, idx:(taskIdx!==null&&taskIdx!==undefined)?taskIdx:null};
+  const p=phases.find(x=>x.id===phaseId);
+  const t=(editTaskCtx.idx!==null)?p?.tasks[editTaskCtx.idx]:null;
   document.getElementById('taskModalTitle').textContent=t?'Edit Task':'Add Task';
-  document.getElementById('tName').value=t?t.name:'';
-  document.getElementById('tDetail').value=t?(t.detail||''):'';
-  document.getElementById('tPri').value=t?(t.priority||''):'';
-  document.getElementById('tDone').value=t?String(t.done):'false';
+  document.getElementById('tName').value  =t?t.name:'';
+  document.getElementById('tDetail').value=t?t.detail||'':'';
+  document.getElementById('tPri').value   =t?t.priority||'':'';
+  document.getElementById('tStatus').value=t?String(!!t.done):'false';
   document.getElementById('customTag').value='';
-  activeTags=t?[...(t.tags||[])]:[]; 
-  document.querySelectorAll('.tag-toggle').forEach(el=>el.classList.toggle('active',activeTags.includes(el.dataset.tag)));
-  document.getElementById('taskDeleteBtn').style.display=t?'block':'none';
+  activeTags=t?[...(t.tags||[])]:[];
+  document.querySelectorAll('.tag-tgl').forEach(el=>el.classList.toggle('on',activeTags.includes(el.dataset.tag)));
+  document.getElementById('taskDelBtn').style.display=t?'block':'none';
   document.getElementById('taskModal').classList.remove('hidden');
   setTimeout(()=>document.getElementById('tName').focus(),100);
-}
-function toggleTag(el){const tag=el.dataset.tag;if(activeTags.includes(tag)){activeTags=activeTags.filter(t=>t!==tag);el.classList.remove('active');}else{activeTags.push(tag);el.classList.add('active');}}
+};
+
+window.toggleTag = function(el) {
+  const tag=el.dataset.tag;
+  if(activeTags.includes(tag)){activeTags=activeTags.filter(t=>t!==tag);el.classList.remove('on');}
+  else{activeTags.push(tag);el.classList.add('on');}
+};
+
 document.getElementById('customTag').addEventListener('keydown',e=>{
   if(e.key==='Enter'){e.preventDefault();const v=e.target.value.trim().toLowerCase().replace(/\s+/g,'-');if(v&&!activeTags.includes(v))activeTags.push(v);e.target.value='';}
 });
 
-async function saveTask(){
+window.saveTask = async function() {
   const name=document.getElementById('tName').value.trim();
   if(!name){toast('⚠️ Task name is required');return;}
   const tags=[...activeTags];
   const cv=document.getElementById('customTag').value.trim().toLowerCase().replace(/\s+/g,'-');
   if(cv&&!tags.includes(cv))tags.push(cv);
-  const taskData={name,detail:document.getElementById('tDetail').value.trim(),priority:document.getElementById('tPri').value,done:document.getElementById('tDone').value==='true',tags};
-  const p=phases.find(x=>x.id===editingTaskCtx.phaseId);
+  const td={name,detail:document.getElementById('tDetail').value.trim(),priority:document.getElementById('tPri').value,done:document.getElementById('tStatus').value==='true',tags};
+  const p=phases.find(x=>x.id===editTaskCtx.phaseId);
   if(!p){closeModal('taskModal');return;}
   const pName=p.name.replace(/Phase \d+\s*[—–-]\s*/,'');
-  const isNew=!editingTaskCtx.taskId;
-  if(editingTaskCtx.taskId){
-    const idx=p.tasks.findIndex(x=>x.id===editingTaskCtx.taskId);
-    if(idx>-1){
-      const old=p.tasks[idx];
-      const ch=[];
-      if(old.name!==name)ch.push(`Renamed`);
-      if(old.priority!==taskData.priority)ch.push(`Priority → ${taskData.priority||'none'}`);
-      if(old.done!==taskData.done)ch.push(taskData.done?'Marked done':'Reopened');
-      if(JSON.stringify(old.tags)!==JSON.stringify(tags))ch.push(`Tags updated`);
-      p.tasks[idx]={...p.tasks[idx],...taskData};
-      logAct('updated',name,ch.length?ch.join(' · '):`Details updated in "${pName}"`,editingTaskCtx.phaseId,editingTaskCtx.taskId);
-    }
-  }else{
-    const nid=uid();
-    p.tasks.push({id:nid,...taskData});
-    logAct('added',name,`Added to "${pName}"`,editingTaskCtx.phaseId,nid);
+  const isNew=editTaskCtx.idx===null;
+  if(!isNew){
+    const old=p.tasks[editTaskCtx.idx]||{};
+    const ch=[];
+    if(old.name!==name)ch.push('Renamed');
+    if(old.priority!==td.priority)ch.push(`Priority → ${td.priority||'none'}`);
+    if(old.done!==td.done)ch.push(td.done?'Marked done':'Reopened');
+    if(JSON.stringify(old.tags)!==JSON.stringify(tags))ch.push('Tags updated');
+    const tid=old.id||genId('t');
+    p.tasks[editTaskCtx.idx]={...old,...td,id:tid};
+    logAct('updated',name,ch.length?ch.join(' · '):`Updated in "${pName}"`,editTaskCtx.phaseId,tid);
+  } else {
+    const nid=genId('t');
+    p.tasks.push({id:nid,...td});
+    logAct('added',name,`Added to "${pName}"`,editTaskCtx.phaseId,nid);
   }
-  closeModal('taskModal');render();await persist();
-  toast(isNew?'✅ Task added':'✅ Task updated');
-}
-async function deleteTask(){
-  const{phaseId,taskId}=editingTaskCtx;
-  const p=phases.find(x=>x.id===phaseId),t=p?.tasks.find(x=>x.id===taskId);
+  closeModal('taskModal');
+  try{await writeToDB();toast(isNew?'✅ Task added':'✅ Task updated');}
+  catch(e){toast('❌ '+e.message);}
+};
+
+window.deleteTask = function() {
+  const{phaseId,idx}=editTaskCtx;
+  const p=phases.find(x=>x.id===phaseId),t=p?.tasks[idx];
   showConfirm(`Delete "${t?.name}"?`,'This task will be permanently removed.',async()=>{
-    logAct('deleted',t.name,`Removed from "${p.name.replace(/Phase \d+\s*[—–-]\s*/,'')}"`,phaseId,taskId);
-    if(p)p.tasks=p.tasks.filter(x=>x.id!==taskId);
-    closeModal('taskModal');render();await persist();toast('🗑 Task deleted');
+    logAct('deleted',t.name,`Removed from "${p.name.replace(/Phase \d+\s*[—–-]\s*/,'')}"`,phaseId,t.id||'');
+    p.tasks.splice(idx,1);closeModal('taskModal');
+    try{await writeToDB();toast('🗑 Task deleted');}catch(e){toast('❌ '+e.message);}
   });
-}
-async function confirmDeleteTask(phaseId,taskId){
-  const p=phases.find(x=>x.id===phaseId),t=p?.tasks.find(x=>x.id===taskId);
-  showConfirm(`Delete "${t?.name}"?`,'This task will be permanently removed.',async()=>{
-    logAct('deleted',t.name,`Removed from "${p.name.replace(/Phase \d+\s*[—–-]\s*/,'')}"`,phaseId,taskId);
-    if(p)p.tasks=p.tasks.filter(x=>x.id!==taskId);
-    render();await persist();toast('🗑 Task deleted');
+};
+
+window.cfmDelTask = function(phaseId,ti){
+  const p=phases.find(x=>x.id===phaseId),t=p?.tasks[ti];
+  if(!t)return;
+  showConfirm(`Delete "${t.name}"?`,'This task will be permanently removed.',async()=>{
+    logAct('deleted',t.name,`Removed from "${p.name.replace(/Phase \d+\s*[—–-]\s*/,'')}"`,phaseId,t.id||'');
+    p.tasks.splice(ti,1);
+    try{await writeToDB();toast('🗑 Task deleted');}catch(e){toast('❌ '+e.message);}
   });
-}
+};
+
+// ── CONFIRM ──────────────────────────────────────────────────
 function showConfirm(title,desc,onOk){
-  document.getElementById('confirmTitle').textContent=title;
-  document.getElementById('confirmDesc').textContent=desc;
-  const ok=document.getElementById('confirmOk'),nok=ok.cloneNode(true);
-  ok.parentNode.replaceChild(nok,ok);
-  nok.addEventListener('click',()=>{closeModal('confirmModal');onOk();});
+  document.getElementById('cfTitle').textContent=title;
+  document.getElementById('cfDesc').textContent=desc;
+  const old=document.getElementById('cfOk'),btn=old.cloneNode(true);
+  old.parentNode.replaceChild(btn,old);
+  btn.addEventListener('click',()=>{closeModal('confirmModal');onOk();});
   document.getElementById('confirmModal').classList.remove('hidden');
 }
-function closeModal(id){document.getElementById(id).classList.add('hidden');}
-document.querySelectorAll('.modal-overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)closeModal(el.id);}));
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.querySelectorAll('.modal-overlay:not(.hidden)').forEach(el=>closeModal(el.id));closeDrawer();}});
 
-// ── DEFAULT DATA ───────────────────────────────────────────────────────────
-const DEFAULT_PHASES=[
-  {id:uid(),icon:'✅',name:'Phase 0 — Already Shipped',desc:'Core features live in production. The foundation is solid.',badgeLabel:'COMPLETE',badgeColor:'green',tasks:[
-    {id:uid(),name:'Table management (up to 30 tables)',detail:'Default 5 tables, dynamic resize works correctly.',tags:[],priority:'',done:true},
-    {id:uid(),name:'Parcel / Takeaway order tracking',detail:'Tracked separately from dine-in, named sequentially.',tags:[],priority:'',done:true},
-    {id:uid(),name:'Real-time Firebase sync between Owner and Kitchen',detail:'WebSocket-based, instant across any network.',tags:[],priority:'',done:true},
-    {id:uid(),name:'Kitchen Display with live order cards and sound alert',detail:'Beep + banner on new order. Colour coding by order type.',tags:[],priority:'',done:true},
-    {id:uid(),name:'Cash + UPI payment tracking with auto-clear',detail:'Both modes tracked. Table resets on payment.',tags:[],priority:'',done:true},
-    {id:uid(),name:'Open / Close café toggle',detail:'Blocks new orders when closed.',tags:[],priority:'',done:true},
-    {id:uid(),name:'Menu management (add, delete, toggle availability)',detail:'Live changes visible to kitchen immediately.',tags:[],priority:'',done:true},
-    {id:uid(),name:'Sales dashboard — Today / Week / All Time',detail:'Summary cards: Total, Cash, UPI. Recent orders list.',tags:[],priority:'',done:true},
-    {id:uid(),name:'Excel + PDF report downloads (GST format)',detail:'3-sheet Excel + styled PDF auto-named with date.',tags:[],priority:'',done:true},
-    {id:uid(),name:'Interactive mock demo with BroadcastChannel sync',detail:'demo-owner.html + demo-kitchen.html — zero dependencies.',tags:[],priority:'',done:true},
-    {id:uid(),name:'Guided tooltip tour (9+5 steps)',detail:'Auto-starts on load. Spotlights each feature.',tags:[],priority:'',done:true},
-    {id:uid(),name:'Netlify deployment + Sales Word document',detail:'Clean /owner, /kitchen URLs. Pricing, features, FAQ doc.',tags:[],priority:'',done:true},
-  ]},
-  {id:uid(),icon:'🔥',name:'Phase 1 — Ship Before First Sale',desc:'These are BLOCKERS. Fix before pitching to anyone.',badgeLabel:'SHIP NOW',badgeColor:'amber',tasks:[
-    {id:uid(),name:'Fix Firebase security rules — no open read/write',detail:'Anyone with DB URL can wipe all orders. Add Firebase Auth or passphrase.',tags:['blocker','security'],priority:'critical',done:false},
-    {id:uid(),name:'White-glove onboarding for café owners',detail:'Firebase setup confuses non-tech owners. Do it for them — charge ₹500.',tags:['blocker','ux'],priority:'critical',done:false},
-    {id:uid(),name:'2–3 min video walkthrough',detail:'Record one complete order flow. WhatsApp-shareable. Converts 5× better than docs.',tags:['blocker','revenue'],priority:'critical',done:false},
-    {id:uid(),name:'Fix "Open Kitchen Tab" URL for GitHub Pages',detail:'Hardcode the correct full URL so the button always opens demo-kitchen.html.',tags:['blocker','infra'],priority:'critical',done:false},
-    {id:uid(),name:'Demo reset button',detail:'After a prospect clears all tables they get a blank screen. Add Reset to replay.',tags:['ux'],priority:'high',done:false},
-    {id:uid(),name:'GitHub Pages deployment',detail:'Push repo, enable Pages, get a live shareable URL immediately.',tags:['infra'],priority:'high',done:false},
-    {id:uid(),name:'WhatsApp OG preview meta tags',detail:'Add og:image, og:title, og:description so the demo link shows a preview card.',tags:['growth','ux'],priority:'high',done:false},
-  ]},
-  {id:uid(),icon:'🚀',name:'Phase 2 — First 10 Customers',desc:'Features that close deals and create word-of-mouth while onboarding early cafés.',badgeLabel:'NEXT UP',badgeColor:'blue',tasks:[
-    {id:uid(),name:'WhatsApp bill sharing button',detail:'One tap generates a bill and opens WhatsApp with pre-filled message.',tags:['revenue','growth'],priority:'high',done:false},
-    {id:uid(),name:'QR code per table — scan to see order status',detail:'Customer scans → read-only order status page.',tags:['ux','revenue'],priority:'high',done:false},
-    {id:uid(),name:'Firebase Auth — owner login with email + password',detail:'Replaces raw API key setup.',tags:['security','ux'],priority:'high',done:false},
-    {id:uid(),name:'Daily WhatsApp sales summary to owner',detail:'End-of-day: total revenue, top item, cash/UPI split.',tags:['revenue','growth'],priority:'high',done:false},
-    {id:uid(),name:'Multi-staff / waiter accounts',detail:'Waiter logins can take orders but not view sales or settings.',tags:['revenue'],priority:'medium',done:false},
-    {id:uid(),name:'Item-level notes (less sugar, no onion…)',detail:'Kitchen sees the note on the order card.',tags:['ux'],priority:'medium',done:false},
-    {id:uid(),name:'Thermal receipt printing support',detail:'Print bill button for Bluetooth thermal printers.',tags:['revenue'],priority:'medium',done:false},
-    {id:uid(),name:'Offline mode — queue orders when internet drops',detail:'Store in localStorage, sync on restore.',tags:['ux','infra'],priority:'medium',done:false},
-  ]},
-  {id:uid(),icon:'🔭',name:'Phase 3 — Growth & Retention',desc:'Features that retain customers and grow average revenue per account.',badgeLabel:'FUTURE',badgeColor:'purple',tasks:[
-    {id:uid(),name:'Customer-facing digital menu with QR per table',detail:'Customer scans and browses while waiting.',tags:['ux','revenue'],priority:'high',done:false},
-    {id:uid(),name:'Razorpay / UPI payment integration',detail:'Customer pays from digital menu.',tags:['revenue'],priority:'medium',done:false},
-    {id:uid(),name:'Monthly GST report in portal-ready format',detail:'Pre-format Excel for direct GST portal upload.',tags:['revenue'],priority:'medium',done:false},
-    {id:uid(),name:'Inventory / stock tracking',detail:'Auto-marks items unavailable when stock runs low.',tags:['ux'],priority:'medium',done:false},
-    {id:uid(),name:'Customer loyalty — track repeat visitors',detail:'"10th visit free." Look up by phone number.',tags:['growth'],priority:'low',done:false},
-  ]},
-  {id:uid(),icon:'💼',name:'Phase 4 — SaaS Scale',desc:'Self-serve product. Only after 10 paying customers.',badgeLabel:'SAAS SCALE',badgeColor:'red',tasks:[
-    {id:uid(),name:'Self-serve onboarding — zero manual setup',detail:'Café signs up, system auto-provisions Firebase project.',tags:['infra','revenue'],priority:'high',done:false},
-    {id:uid(),name:'Subscription billing via Razorpay recurring',detail:'Monthly/annual plans charged automatically.',tags:['revenue'],priority:'high',done:false},
-    {id:uid(),name:'Branded subdomain per café',detail:'Every café gets their own subdomain.',tags:['ux','growth'],priority:'medium',done:false},
-    {id:uid(),name:'Multi-branch support — one login, multiple locations',detail:'Unlocks higher pricing tier for chains.',tags:['revenue'],priority:'medium',done:false},
-    {id:uid(),name:'Affiliate / referral programme dashboard',detail:'Tracked referral credits turn customers into sales team.',tags:['growth'],priority:'medium',done:false},
-  ]},
-];
+window.closeModal = function(id){ document.getElementById(id).classList.add('hidden'); };
 
-// ── INIT ───────────────────────────────────────────────────────────────────
-(async()=>{await loadUser();await load();})();
+document.querySelectorAll('.modal-overlay').forEach(el=>
+  el.addEventListener('click',e=>{if(e.target===el)closeModal(el.id);})
+);
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    document.querySelectorAll('.modal-overlay:not(.hidden)').forEach(el=>closeModal(el.id));
+    closeDrawer();
+  }
+});
+
+// ── DEFAULT DATA ─────────────────────────────────────────────
+function getDefaults(){
+  const t=()=>genId('t'), p=()=>genId('p');
+  return [
+    {id:p(),icon:'✅',name:'Phase 0 — Already Shipped',desc:'Core features live in production. The foundation is solid.',badgeLabel:'COMPLETE',badgeColor:'green',tasks:[
+      {id:t(),name:'Table management (up to 30 tables)',detail:'Default 5 tables, dynamic resize works correctly.',tags:[],priority:'',done:true},
+      {id:t(),name:'Parcel / Takeaway + Standing order tracking',detail:'Tracked separately from dine-in with sequential naming.',tags:[],priority:'',done:true},
+      {id:t(),name:'Real-time Firebase sync between Owner and Kitchen',detail:'WebSocket-based, instant across any network.',tags:[],priority:'',done:true},
+      {id:t(),name:'Kitchen Display with sound alert and colour coding',detail:'Beep + banner on new order. Colour coded by type.',tags:[],priority:'',done:true},
+      {id:t(),name:'Cash + UPI payment tracking with auto-clear',detail:'Both modes tracked. Table resets on payment.',tags:[],priority:'',done:true},
+      {id:t(),name:'Open / Close café toggle',detail:'Blocks new orders when closed.',tags:[],priority:'',done:true},
+      {id:t(),name:'Menu management (add, delete, toggle availability)',detail:'Live changes visible to kitchen immediately.',tags:[],priority:'',done:true},
+      {id:t(),name:'Sales dashboard — Today / Week / All Time',detail:'Summary cards: Total, Cash, UPI. Recent orders list.',tags:[],priority:'',done:true},
+      {id:t(),name:'Excel + PDF report downloads (GST format)',detail:'3-sheet Excel + styled PDF auto-named with date.',tags:[],priority:'',done:true},
+      {id:t(),name:'Interactive mock demo with BroadcastChannel sync',detail:'demo-owner.html + demo-kitchen.html — zero dependencies.',tags:[],priority:'',done:true},
+      {id:t(),name:'Guided tooltip tour (9+5 steps)',detail:'Auto-starts on load. Spotlights each feature.',tags:[],priority:'',done:true},
+      {id:t(),name:'Netlify deployment + Sales Word document',detail:'Clean /owner, /kitchen URLs. Pricing, features, FAQ.',tags:[],priority:'',done:true},
+    ]},
+    {id:p(),icon:'🔥',name:'Phase 1 — Ship Before First Sale',desc:'BLOCKERS — fix these before pitching to anyone.',badgeLabel:'SHIP NOW',badgeColor:'amber',tasks:[
+      {id:t(),name:'Fix Firebase security rules — no open read/write',detail:'Anyone with the DB URL can wipe all orders. Add Auth or passphrase.',tags:['blocker','security'],priority:'critical',done:false},
+      {id:t(),name:'White-glove onboarding for café owners',detail:'Firebase setup confuses non-tech owners. Do it for them — charge ₹500.',tags:['blocker','ux'],priority:'critical',done:false},
+      {id:t(),name:'2–3 min video walkthrough',detail:'Record a complete order flow. WhatsApp-shareable. Converts 5× better.',tags:['blocker','revenue'],priority:'critical',done:false},
+      {id:t(),name:'Fix "Open Kitchen Tab" URL for GitHub Pages',detail:'Hardcode the correct URL so it always opens demo-kitchen.html.',tags:['blocker','infra'],priority:'critical',done:false},
+      {id:t(),name:'Demo reset button',detail:'After a prospect clears tables they get blank screen. Add Reset.',tags:['ux'],priority:'high',done:false},
+      {id:t(),name:'GitHub Pages deployment',detail:'Push repo, enable Pages, get a shareable URL immediately.',tags:['infra'],priority:'high',done:false},
+      {id:t(),name:'WhatsApp OG preview meta tags',detail:'Add og:image, og:title so the link shows a card on WhatsApp.',tags:['growth','ux'],priority:'high',done:false},
+    ]},
+    {id:p(),icon:'🚀',name:'Phase 2 — First 10 Customers',desc:'Features that close deals and create word-of-mouth.',badgeLabel:'NEXT UP',badgeColor:'blue',tasks:[
+      {id:t(),name:'WhatsApp bill sharing button',detail:'One tap generates a bill and opens WhatsApp with pre-filled text.',tags:['revenue','growth'],priority:'high',done:false},
+      {id:t(),name:'QR code per table — customer sees order status',detail:'Customer scans → read-only order status page.',tags:['ux','revenue'],priority:'high',done:false},
+      {id:t(),name:'Firebase Auth — owner login with email + password',detail:'Replaces raw API key setup. Less confusing for non-tech users.',tags:['security','ux'],priority:'high',done:false},
+      {id:t(),name:'Daily WhatsApp sales summary to owner',detail:'End-of-day: total revenue, top item, cash/UPI split.',tags:['revenue','growth'],priority:'high',done:false},
+      {id:t(),name:'Multi-staff / waiter accounts',detail:'Waiter logins can take orders but not view sales.',tags:['revenue'],priority:'medium',done:false},
+      {id:t(),name:'Item-level notes (less sugar, no onion…)',detail:'Kitchen sees the note on the order card.',tags:['ux'],priority:'medium',done:false},
+      {id:t(),name:'Thermal receipt printing support',detail:'Print bill button for Bluetooth thermal printers.',tags:['revenue'],priority:'medium',done:false},
+      {id:t(),name:'Offline mode — queue orders when internet drops',detail:'Store in localStorage, auto-sync on restore.',tags:['ux','infra'],priority:'medium',done:false},
+    ]},
+    {id:p(),icon:'🔭',name:'Phase 3 — Growth & Retention',desc:'Features that retain customers and grow revenue per account.',badgeLabel:'FUTURE',badgeColor:'purple',tasks:[
+      {id:t(),name:'Customer-facing digital menu with QR per table',detail:'Customer scans and browses while waiting.',tags:['ux','revenue'],priority:'high',done:false},
+      {id:t(),name:'Razorpay / UPI payment integration',detail:'Customer pays directly from the digital menu.',tags:['revenue'],priority:'medium',done:false},
+      {id:t(),name:'Monthly GST report in portal-ready format',detail:'Pre-format Excel for direct GST portal upload.',tags:['revenue'],priority:'medium',done:false},
+      {id:t(),name:'Inventory / stock tracking per item',detail:'Auto-marks items unavailable when stock runs low.',tags:['ux'],priority:'medium',done:false},
+      {id:t(),name:'Customer loyalty — track repeat visitors',detail:'"10th visit free." Lookup by phone number.',tags:['growth'],priority:'low',done:false},
+    ]},
+    {id:p(),icon:'💼',name:'Phase 4 — SaaS Scale',desc:'Self-serve product. Only after 10 paying customers.',badgeLabel:'SAAS',badgeColor:'red',tasks:[
+      {id:t(),name:'Self-serve onboarding — zero manual setup',detail:'Café signs up, system auto-provisions Firebase.',tags:['infra','revenue'],priority:'high',done:false},
+      {id:t(),name:'Subscription billing via Razorpay recurring',detail:'Monthly/annual plans charged automatically.',tags:['revenue'],priority:'high',done:false},
+      {id:t(),name:'Branded subdomain per café',detail:'Every café gets their own subdomain.',tags:['ux','growth'],priority:'medium',done:false},
+      {id:t(),name:'Multi-branch support — one login, multiple locations',detail:'Unlocks higher pricing for café chains.',tags:['revenue'],priority:'medium',done:false},
+      {id:t(),name:'Affiliate / referral programme dashboard',detail:'Tracked credits turn customers into your sales team.',tags:['growth'],priority:'medium',done:false},
+    ]},
+  ];
+}
+
+// ── BOOT ─────────────────────────────────────────────────────
+loadUser();
+initListeners();
 </script>
 </body>
 </html>
