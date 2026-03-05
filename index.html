@@ -410,14 +410,13 @@ body::before{content:'';position:fixed;inset:0;background:url("data:image/svg+xm
   </div>
 </div>
 
-<!-- ═══ ALL JS IN ONE type="module" BLOCK — Firebase imports are resolved first ═══ -->
 <script type="module">
 import { initializeApp }                          from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getDatabase, ref, set, get, onValue,
+import { getDatabase, ref, set, onValue,
          push, remove, serverTimestamp,
          onDisconnect, update }                   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
-// ── FIREBASE INIT ───────────────────────────────────────────
+// ── FIREBASE INIT ─────────────────────────────────────────
 const app = initializeApp({
   apiKey:            "AIzaSyDQhxzHLXA6_-KeEeMthu6Dz2dwh9tNRWU",
   authDomain:        "roadmap-7bd95.firebaseapp.com",
@@ -433,149 +432,127 @@ const phasesRef   = ref(db, 'roadmap/phases');
 const activityRef = ref(db, 'roadmap/activity');
 const presenceRef = ref(db, 'roadmap/presence');
 
-// ── CONSTANTS ───────────────────────────────────────────────
+// ── CONSTANTS ─────────────────────────────────────────────
 const COLORS     = ['#4E342E','#1565C0','#2E7D32','#6A1B9A','#B71C1C','#E65100','#00695C','#AD1457','#37474F','#4527A0'];
 const ACT_ICONS  = {added:'➕',updated:'✏️',deleted:'🗑️',completed:'✅',reopened:'↩️',moved:'↕️'};
 const KNOWN_TAGS = ['blocker','security','ux','revenue','infra','growth'];
 
-// ── STATE ───────────────────────────────────────────────────
-let phases      = [];
-let actLog      = [];
-let onlineMap   = {};
-let collapsed   = {};
-let activeFilter   = 'all';
-let actFilter      = 'all';
-let editPhaseId    = null;
-let editTaskCtx    = null;   // {phaseId, idx}
-let selBadgeColor  = 'green';
-let activeTags     = [];
-let selSwatch      = COLORS[0];
-let me = { id:'u'+Math.random().toString(36).slice(2,10), name:'', color:COLORS[0] };
+// ── STATE ─────────────────────────────────────────────────
+let phases=[], actLog=[], onlineMap={}, collapsed={};
+let activeFilter='all', actFilter='all';
+let editPhaseId=null, editTaskCtx=null;
+let selBadgeColor='green', activeTags=[], selSwatch=COLORS[0];
+let me={id:'u'+Math.random().toString(36).slice(2,10),name:'',color:COLORS[0]};
 
-// ── UTILS ───────────────────────────────────────────────────
-const genId  = (p='i') => p + Math.random().toString(36).slice(2,9) + Date.now().toString(36).slice(-4);
-const esc    = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const ini    = n => (n||'?').split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase()||'?';
-const relT   = ts => {
-  if(!ts) return '';
-  const s = Math.floor((Date.now()-ts)/1000);
-  if(s<5)return'just now'; if(s<60)return s+'s ago';
+// ── UTILS ─────────────────────────────────────────────────
+const genId=(p='i')=>p+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4);
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const ini=n=>(n||'?').split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase()||'?';
+const relT=ts=>{
+  if(!ts)return'';const s=Math.floor((Date.now()-ts)/1000);
+  if(s<5)return'just now';if(s<60)return s+'s ago';
   if(s<3600)return Math.floor(s/60)+'m ago';
   if(s<86400)return Math.floor(s/3600)+'h ago';
   return Math.floor(s/86400)+'d ago';
 };
-const mav = (name,color,sz=13,fs=7) =>
+const mav=(name,color,sz=13,fs=7)=>
   `<span style="width:${sz}px;height:${sz}px;border-radius:50%;background:${esc(color)};display:inline-flex;align-items:center;justify-content:center;font-size:${fs}px;font-weight:700;color:#fff;flex-shrink:0">${ini(name)}</span>`;
 
-function toast(msg, dur=2800) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove('show'), dur);
+function toast(msg,dur=2800){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),dur);
 }
-function setSS(cls, lbl) {
-  document.getElementById('syncBadge').className = 'sync-badge ' + cls;
-  document.getElementById('syncLbl').textContent = lbl;
+function setSS(cls,lbl){
+  document.getElementById('syncBadge').className='sync-badge '+cls;
+  document.getElementById('syncLbl').textContent=lbl;
 }
-function hideLoader() {
-  const ls = document.getElementById('ls');
-  ls.style.opacity = '0';
-  setTimeout(()=>ls.classList.add('hidden'), 500);
+function hideLoader(){
+  const ls=document.getElementById('ls');
+  ls.style.opacity='0';setTimeout(()=>ls.classList.add('hidden'),500);
 }
-function setLMsg(m) { document.getElementById('lmsg').textContent = m; }
+function setLMsg(m){document.getElementById('lmsg').textContent=m;}
 
-// ── IDENTITY ────────────────────────────────────────────────
-function loadUser() {
-  try { const s=localStorage.getItem('crm-u'); if(s) me=JSON.parse(s); } catch(e){}
-  updateChip(); buildSwatches();
-  if(!me.name) openIdModal(true);
-  else startPresence();
+// ── IDENTITY ──────────────────────────────────────────────
+function loadUser(){
+  try{const s=localStorage.getItem('crm-u');if(s)me=JSON.parse(s);}catch(e){}
+  updateChip();buildSwatches();
+  if(!me.name)openIdModal(true);else startPresence();
 }
-
-window.saveIdentity = function() {
-  const nm = document.getElementById('iName').value.trim();
-  if(!nm){ toast('⚠️ Please enter your name'); return; }
-  me.name=nm; me.color=selSwatch;
-  try{ localStorage.setItem('crm-u', JSON.stringify(me)); }catch(e){}
-  closeModal('idModal'); updateChip(); startPresence();
-  toast('✅ Identity saved');
+window.saveIdentity=function(){
+  const nm=document.getElementById('iName').value.trim();
+  if(!nm){toast('⚠️ Please enter your name');return;}
+  me.name=nm;me.color=selSwatch;
+  try{localStorage.setItem('crm-u',JSON.stringify(me));}catch(e){}
+  closeModal('idModal');updateChip();startPresence();toast('✅ Identity saved');
 };
-
-window.openIdModal = function(force) {
+window.openIdModal=function(force){
   buildSwatches();
-  document.getElementById('iName').value = me.name||'';
-  document.getElementById('idClose').style.display = (force&&!me.name)?'none':'';
+  document.getElementById('iName').value=me.name||'';
+  document.getElementById('idClose').style.display=(force&&!me.name)?'none':'';
   document.getElementById('idModal').classList.remove('hidden');
-  setTimeout(()=>document.getElementById('iName').focus(), 120);
+  setTimeout(()=>document.getElementById('iName').focus(),120);
 };
-
-function buildSwatches() {
-  selSwatch = me.color||COLORS[0];
-  document.getElementById('swatches').innerHTML = COLORS.map(c=>
+function buildSwatches(){
+  selSwatch=me.color||COLORS[0];
+  document.getElementById('swatches').innerHTML=COLORS.map(c=>
     `<div class="swatch${c===selSwatch?' sel':''}" style="background:${c}" data-c="${c}" onclick="pickSwatch(this)">${ini(me.name)}</div>`
   ).join('');
 }
-
-window.pickSwatch = function(el) {
-  selSwatch = el.dataset.c;
+window.pickSwatch=function(el){
+  selSwatch=el.dataset.c;
   document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('sel'));
   el.classList.add('sel');
 };
-
-document.addEventListener('input', e => {
-  if(e.target?.id==='iName') document.querySelectorAll('.swatch').forEach(s=>s.textContent=ini(e.target.value));
+document.addEventListener('input',e=>{
+  if(e.target?.id==='iName')document.querySelectorAll('.swatch').forEach(s=>s.textContent=ini(e.target.value));
 });
-
-function updateChip() {
-  document.getElementById('hdrAv').style.background = me.color||'#888';
-  document.getElementById('hdrAv').textContent = ini(me.name);
-  document.getElementById('hdrName').textContent = me.name||'Set your name';
+function updateChip(){
+  document.getElementById('hdrAv').style.background=me.color||'#888';
+  document.getElementById('hdrAv').textContent=ini(me.name);
+  document.getElementById('hdrName').textContent=me.name||'Set your name';
 }
 
-// ── PRESENCE ────────────────────────────────────────────────
-let myPresRef = null;
-function startPresence() {
-  if(!me.name) return;
-  myPresRef = ref(db, 'roadmap/presence/' + me.id);
-  const data = { name:me.name, color:me.color, ts:serverTimestamp() };
-  set(myPresRef, data);
+// ── PRESENCE ──────────────────────────────────────────────
+let myPresRef=null;
+function startPresence(){
+  if(!me.name)return;
+  myPresRef=ref(db,'roadmap/presence/'+me.id);
+  set(myPresRef,{name:me.name,color:me.color,ts:serverTimestamp()});
   onDisconnect(myPresRef).remove();
-  setInterval(()=>{ if(myPresRef) update(myPresRef, {ts:serverTimestamp()}); }, 20000);
-
-  onValue(presenceRef, snap => {
-    const now = Date.now(); onlineMap = {};
-    if(snap.exists()) snap.forEach(ch=>{ const u=ch.val(); if(u&&(now-u.ts)<45000) onlineMap[ch.key]=u; });
+  setInterval(()=>{if(myPresRef)update(myPresRef,{ts:serverTimestamp()});},20000);
+  onValue(presenceRef,snap=>{
+    const now=Date.now();onlineMap={};
+    if(snap.exists())snap.forEach(ch=>{const u=ch.val();if(u&&(now-u.ts)<45000)onlineMap[ch.key]=u;});
     renderPresence();
   });
 }
-
-function renderPresence() {
-  const a = Object.values(onlineMap);
-  document.getElementById('onlineDiv').innerHTML = a.length
-    ? a.map(u=>`<div class="av-sm" style="background:${esc(u.color)}" title="${esc(u.name)}">${ini(u.name)}</div>`).join('')
-    : '<span style="font-size:9px;color:rgba(255,255,255,.3)">just you</span>';
+function renderPresence(){
+  const a=Object.values(onlineMap);
+  document.getElementById('onlineDiv').innerHTML=a.length
+    ?a.map(u=>`<div class="av-sm" style="background:${esc(u.color)}" title="${esc(u.name)}">${ini(u.name)}</div>`).join('')
+    :'<span style="font-size:9px;color:rgba(255,255,255,.3)">just you</span>';
 }
 
-// ── ACTIVITY ────────────────────────────────────────────────
-function logAct(action, target, detail='', phaseId='', taskId='') {
-  if(!me.name) return;
-  push(activityRef, { ts:serverTimestamp(), user:me.name, color:me.color, action, target:target||'', detail:detail||'', phaseId:phaseId||'', taskId:taskId||'' });
+// ── ACTIVITY ──────────────────────────────────────────────
+function logAct(action,target,detail='',phaseId='',taskId=''){
+  if(!me.name)return;
+  push(activityRef,{ts:serverTimestamp(),user:me.name,color:me.color,action,target:target||'',detail:detail||'',phaseId:phaseId||'',taskId:taskId||''});
 }
-
-window.setAF = function(f, btn) {
-  actFilter = f;
+window.setAF=function(f,btn){
+  actFilter=f;
   document.querySelectorAll('.af-tab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active'); renderDrawer();
+  btn.classList.add('active');renderDrawer();
 };
-
-function renderDrawer() {
-  const body = document.getElementById('drwBody');
-  const entries = actFilter==='all' ? actLog : actLog.filter(a=>a.action===actFilter);
-  if(!entries.length){ body.innerHTML=`<div class="act-empty">${actFilter==='all'?'No activity yet — start editing!':'No entries for this filter.'}</div>`; return; }
-  let html='', lastD='';
+function renderDrawer(){
+  const body=document.getElementById('drwBody');
+  const entries=actFilter==='all'?actLog:actLog.filter(a=>a.action===actFilter);
+  if(!entries.length){body.innerHTML=`<div class="act-empty">${actFilter==='all'?'No activity yet — start editing!':'No entries for this filter.'}</div>`;return;}
+  let html='',lastD='';
   entries.forEach(a=>{
     const d=new Date(a.ts||Date.now());
     const ds=d.toLocaleDateString('en-IN',{weekday:'short',month:'short',day:'numeric'});
-    if(ds!==lastD){ html+=`<div class="act-date">${ds}</div>`; lastD=ds; }
+    if(ds!==lastD){html+=`<div class="act-date">${ds}</div>`;lastD=ds;}
     html+=`<div class="act-row" data-a="${esc(a.action)}">
       <div class="act-av" style="background:${esc(a.color)}">${ini(a.user)}</div>
       <div class="act-bd">
@@ -584,111 +561,97 @@ function renderDrawer() {
         <div class="act-time">${ACT_ICONS[a.action]||'·'} ${relT(a.ts)} · ${d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</div>
       </div></div>`;
   });
-  body.innerHTML = html;
+  body.innerHTML=html;
 }
-
-function renderActBadge() {
-  const n = actLog.filter(a=>a.ts>Date.now()-3600000).length;
-  const b = document.getElementById('act-badge');
-  b.textContent = n>9?'9+':n; b.style.display = n?'inline':'none';
+function renderActBadge(){
+  const n=actLog.filter(a=>a.ts>Date.now()-3600000).length;
+  const b=document.getElementById('act-badge');
+  b.textContent=n>9?'9+':n;b.style.display=n?'inline':'none';
 }
-
-window.openDrawer = function() {
+window.openDrawer=function(){
   renderDrawer();
   document.getElementById('drw').classList.add('open');
   document.getElementById('drwOverlay').classList.remove('hidden');
   document.getElementById('act-badge').style.display='none';
 };
-window.closeDrawer = function() {
+window.closeDrawer=function(){
   document.getElementById('drw').classList.remove('open');
   document.getElementById('drwOverlay').classList.add('hidden');
 };
 
-// ── FIREBASE LISTENERS ──────────────────────────────────────
-function initListeners() {
-  onValue(phasesRef, snap => {
-    if(!snap.exists()) { setLMsg('First run — seeding defaults…'); seedDefaults(); return; }
-    const raw = snap.val();
-    phases = Object.entries(raw).map(([id,v])=>({
-      id, icon:v.icon||'📋', name:v.name||'Untitled', desc:v.desc||'',
-      badgeLabel:v.badgeLabel||'', badgeColor:v.badgeColor||'mocha',
+// ── FIREBASE LISTENERS ────────────────────────────────────
+// FIX: removed duplicate onValue for activity — only one listener now
+function initListeners(){
+  onValue(phasesRef,snap=>{
+    if(!snap.exists()){setLMsg('First run — seeding defaults…');seedDefaults();return;}
+    const raw=snap.val();
+    phases=Object.entries(raw).map(([id,v])=>({
+      id,icon:v.icon||'📋',name:v.name||'Untitled',desc:v.desc||'',
+      badgeLabel:v.badgeLabel||'',badgeColor:v.badgeColor||'mocha',
       order:v.order??999,
-      tasks: Array.isArray(v.tasks)?v.tasks : (v.tasks?Object.values(v.tasks):[])
+      tasks:Array.isArray(v.tasks)?v.tasks:(v.tasks?Object.values(v.tasks):[])
     })).sort((a,b)=>a.order-b.order);
-    setSS('live','🔥 Live'); render(); hideLoader();
-  }, err=>{ setSS('err','DB Error'); setLMsg('❌ '+err.message); hideLoader(); toast('❌ '+err.message,5000); });
+    setSS('live','🔥 Live');render();hideLoader();
+  },err=>{setSS('err','DB Error');setLMsg('❌ '+err.message);hideLoader();toast('❌ '+err.message,5000);});
 
-  onValue(ref(db,'roadmap/activity'), snap=>{
-    actLog=[];
-    if(snap.exists()) snap.forEach(ch=>{ const v=ch.val(); if(v) actLog.unshift({...v,_k:ch.key}); });
-    renderActBadge();
-    if(document.getElementById('drw').classList.contains('open')) renderDrawer();
-  }, {/* limit handled by query below */});
-
-  // Replace activity listener with limited query
-  // (onValue above replaced by:)
-  onValue(ref(db,'roadmap/activity'), snap=>{
+  // Single activity listener (was registered twice before — fixed)
+  onValue(ref(db,'roadmap/activity'),snap=>{
     actLog=[];
     if(snap.exists()){
       const all=[];
-      snap.forEach(ch=>{ const v=ch.val(); if(v) all.push({...v,_k:ch.key}); });
-      // sort newest first, keep 150
-      actLog = all.sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,150);
+      snap.forEach(ch=>{const v=ch.val();if(v)all.push({...v,_k:ch.key});});
+      actLog=all.sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,150);
     }
     renderActBadge();
-    if(document.getElementById('drw').classList.contains('open')) renderDrawer();
+    if(document.getElementById('drw').classList.contains('open'))renderDrawer();
   });
 
-  onValue(ref(db,'.info/connected'), snap=>{
-    setSS(snap.val()?'live':'busy', snap.val()?'🔥 Live':'Reconnecting…');
+  onValue(ref(db,'.info/connected'),snap=>{
+    setSS(snap.val()?'live':'busy',snap.val()?'🔥 Live':'Reconnecting…');
   });
 }
 
-// ── WRITE ───────────────────────────────────────────────────
-function writeToDB() {
-  const data = {};
-  phases.forEach((p,i)=>{ data[p.id]={ icon:p.icon, name:p.name, desc:p.desc||'', badgeLabel:p.badgeLabel||'', badgeColor:p.badgeColor||'mocha', order:i, tasks:p.tasks?.length?p.tasks:[] }; });
-  return set(phasesRef, data);
+// ── WRITE ─────────────────────────────────────────────────
+function writeToDB(){
+  const data={};
+  phases.forEach((p,i)=>{data[p.id]={icon:p.icon,name:p.name,desc:p.desc||'',badgeLabel:p.badgeLabel||'',badgeColor:p.badgeColor||'mocha',order:i,tasks:p.tasks?.length?p.tasks:[]};});
+  return set(phasesRef,data);
 }
 
-// ── SEED ────────────────────────────────────────────────────
-function seedDefaults() {
-  const defaults = getDefaults();
-  const data = {};
-  defaults.forEach((p,i)=>{ data[p.id]={ icon:p.icon, name:p.name, desc:p.desc, badgeLabel:p.badgeLabel, badgeColor:p.badgeColor, order:i, tasks:p.tasks }; });
-  set(phasesRef, data).then(()=>toast('✅ Roadmap initialised!')).catch(e=>{ toast('❌ '+e.message,5000); hideLoader(); });
+// ── SEED ──────────────────────────────────────────────────
+function seedDefaults(){
+  const defaults=getDefaults();
+  const data={};
+  defaults.forEach((p,i)=>{data[p.id]={icon:p.icon,name:p.name,desc:p.desc,badgeLabel:p.badgeLabel,badgeColor:p.badgeColor,order:i,tasks:p.tasks};});
+  set(phasesRef,data).then(()=>toast('✅ Roadmap initialised!')).catch(e=>{toast('❌ '+e.message,5000);hideLoader();});
 }
 
-// ── RENDER ──────────────────────────────────────────────────
-function render() {
+// ── RENDER ────────────────────────────────────────────────
+function render(){
   let done=0,total=0,blockers=0;
-  phases.forEach(p=>(p.tasks||[]).forEach(t=>{ total++; if(t.done)done++; if((t.tags||[]).includes('blocker')&&!t.done)blockers++; }));
-  document.getElementById('sDone').textContent  = done;
-  document.getElementById('sBlock').textContent = blockers;
-  document.getElementById('sPh').textContent    = phases.length;
-  document.getElementById('sTotal').textContent = total;
-  const pct = total?Math.round(done/total*100):0;
-  document.getElementById('pbFill').style.width = pct+'%';
-  document.getElementById('pbPct').textContent  = pct+'%';
-  document.getElementById('fChips').innerHTML   =
+  phases.forEach(p=>(p.tasks||[]).forEach(t=>{total++;if(t.done)done++;if((t.tags||[]).includes('blocker')&&!t.done)blockers++;}));
+  document.getElementById('sDone').textContent=done;
+  document.getElementById('sBlock').textContent=blockers;
+  document.getElementById('sPh').textContent=phases.length;
+  document.getElementById('sTotal').textContent=total;
+  const pct=total?Math.round(done/total*100):0;
+  document.getElementById('pbFill').style.width=pct+'%';
+  document.getElementById('pbPct').textContent=pct+'%';
+  document.getElementById('fChips').innerHTML=
     `<span class="f-chip" style="background:#2E7D32">${done} Done</span>
      <span class="f-chip" style="background:${blockers?'#E65100':'#555'}">${blockers} Blockers</span>
      <span class="f-chip" style="background:#1565C0">${total-done} Remaining</span>`;
-
-  // Filters
-  const fr = document.getElementById('filterRow');
-  let ftabs = `<button class="ftab${activeFilter==='all'?' active':''}" onclick="setFilter('all',this)">All</button>`;
-  phases.forEach(p=>{ const s=p.name.replace(/Phase \d+\s*[—–-]\s*/,'').split(' ').slice(0,4).join(' '); ftabs+=`<button class="ftab${activeFilter===p.id?' active':''}" onclick="setFilter('${p.id}',this)">${esc(p.icon)} ${esc(s)}</button>`; });
+  const fr=document.getElementById('filterRow');
+  let ftabs=`<button class="ftab${activeFilter==='all'?' active':''}" onclick="setFilter('all',this)">All</button>`;
+  phases.forEach(p=>{const s=p.name.replace(/Phase \d+\s*[—–-]\s*/,'').split(' ').slice(0,4).join(' ');ftabs+=`<button class="ftab${activeFilter===p.id?' active':''}" onclick="setFilter('${p.id}',this)">${esc(p.icon)} ${esc(s)}</button>`;});
   ftabs+=`<button class="ftab${activeFilter==='blockers'?' active':''}" onclick="setFilter('blockers',this)">🚨 Blockers</button>`;
-  fr.innerHTML = ftabs;
-
-  // Phases
+  fr.innerHTML=ftabs;
   let html='';
-  const vis = activeFilter==='all'?phases:activeFilter==='blockers'?phases:phases.filter(p=>p.id===activeFilter);
+  const vis=activeFilter==='all'?phases:activeFilter==='blockers'?phases:phases.filter(p=>p.id===activeFilter);
   vis.forEach(p=>{
-    let tasks = p.tasks||[];
-    if(activeFilter==='blockers'){ tasks=tasks.filter(t=>(t.tags||[]).includes('blocker')); if(!tasks.length)return; }
-    const isC=!!collapsed[p.id], dC=tasks.filter(t=>t.done).length;
+    let tasks=p.tasks||[];
+    if(activeFilter==='blockers'){tasks=tasks.filter(t=>(t.tags||[]).includes('blocker'));if(!tasks.length)return;}
+    const isC=!!collapsed[p.id],dC=tasks.filter(t=>t.done).length;
     const le=actLog.find(a=>a.phaseId===p.id);
     html+=`<div class="phase${isC?' collapsed':''}" id="ph-${p.id}">
       <div class="phase-hdr">
@@ -713,14 +676,14 @@ function render() {
       <div class="task-add-row"><button class="btn-add" onclick="openTaskModal('${p.id}',null)">＋ Add Task</button></div>
     </div>`;
   });
-  document.getElementById('main').innerHTML = html||'<div class="no-res">No items match this filter.</div>';
+  document.getElementById('main').innerHTML=html||'<div class="no-res">No items match this filter.</div>';
 }
 
-function renderTask(phaseId,t,ti) {
-  const le   = actLog.find(a=>a.taskId===t.id&&a.action!=='deleted');
-  const tags = (t.tags||[]).map(tg=>`<span class="tag tag-${KNOWN_TAGS.includes(tg)?tg:'custom'}">${esc(tg.toUpperCase())}</span>`).join('');
-  const pri  = t.priority?`<span class="task-pri pri-${esc(t.priority)}">${esc(t.priority)}</span>`:'';
-  const meta = le?`<div class="task-meta">${mav(le.user,le.color)} <span>${esc(le.user)}</span>&nbsp;·&nbsp;${relT(le.ts)}</div>`:'';
+function renderTask(phaseId,t,ti){
+  const le=actLog.find(a=>a.taskId===t.id&&a.action!=='deleted');
+  const tags=(t.tags||[]).map(tg=>`<span class="tag tag-${KNOWN_TAGS.includes(tg)?tg:'custom'}">${esc(tg.toUpperCase())}</span>`).join('');
+  const pri=t.priority?`<span class="task-pri pri-${esc(t.priority)}">${esc(t.priority)}</span>`:'';
+  const meta=le?`<div class="task-meta">${mav(le.user,le.color)} <span>${esc(le.user)}</span>&nbsp;·&nbsp;${relT(le.ts)}</div>`:'';
   return `<div class="task${t.done?' done':''}">
     <div class="task-chk" onclick="togDone('${phaseId}',${ti})">${t.done?'✓':''}</div>
     <div class="task-body">
@@ -736,55 +699,51 @@ function renderTask(phaseId,t,ti) {
   </div>`;
 }
 
-// ── ACTIONS ─────────────────────────────────────────────────
-window.togCollapse = id=>{ collapsed[id]=!collapsed[id]; render(); };
-window.setFilter   = (f,btn)=>{ activeFilter=f; document.querySelectorAll('.ftab').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); render(); };
-
-window.togDone = async (phaseId,ti)=>{
-  const p=phases.find(x=>x.id===phaseId); if(!p||!p.tasks[ti])return;
-  const t=p.tasks[ti]; t.done=!t.done;
+// ── ACTIONS ───────────────────────────────────────────────
+window.togCollapse=id=>{collapsed[id]=!collapsed[id];render();};
+window.setFilter=(f,btn)=>{activeFilter=f;document.querySelectorAll('.ftab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');render();};
+window.togDone=async(phaseId,ti)=>{
+  const p=phases.find(x=>x.id===phaseId);if(!p||!p.tasks[ti])return;
+  const t=p.tasks[ti];t.done=!t.done;
   logAct(t.done?'completed':'reopened',t.name,`in "${p.name.replace(/Phase \d+\s*[—–-]\s*/,'')}"`,phaseId,t.id||'');
-  try{ await writeToDB(); }catch(e){ toast('❌ '+e.message); }
+  try{await writeToDB();}catch(e){toast('❌ '+e.message);}
 };
-
-window.mvPhase = async (id,dir)=>{
-  const i=phases.findIndex(p=>p.id===id); if(i<0)return;
-  const ni=i+dir; if(ni<0||ni>=phases.length)return;
+window.mvPhase=async(id,dir)=>{
+  const i=phases.findIndex(p=>p.id===id);if(i<0)return;
+  const ni=i+dir;if(ni<0||ni>=phases.length)return;
   [phases[i],phases[ni]]=[phases[ni],phases[i]];
   logAct('moved',phases[ni].name,dir<0?'Moved up':'Moved down');
-  try{ await writeToDB(); }catch(e){ toast('❌ '+e.message); }
+  try{await writeToDB();}catch(e){toast('❌ '+e.message);}
 };
 
-// ── PHASE MODAL ──────────────────────────────────────────────
-window.openPhaseModal = function(pid) {
-  editPhaseId = pid||null;
-  const p = pid?phases.find(x=>x.id===pid):null;
-  document.getElementById('phaseModalTitle').textContent = p?'Edit Phase':'Add Phase';
-  document.getElementById('pName').value = p?p.name:'';
-  document.getElementById('pDesc').value = p?p.desc||'':'';
-  document.getElementById('pIcon').value = p?p.icon||'📋':'📋';
-  document.getElementById('pBadge').value = p?p.badgeLabel||'':'';
-  selBadgeColor = p?p.badgeColor||'green':'green';
+// ── PHASE MODAL ───────────────────────────────────────────
+window.openPhaseModal=function(pid){
+  editPhaseId=pid||null;
+  const p=pid?phases.find(x=>x.id===pid):null;
+  document.getElementById('phaseModalTitle').textContent=p?'Edit Phase':'Add Phase';
+  document.getElementById('pName').value=p?p.name:'';
+  document.getElementById('pDesc').value=p?p.desc||'':'';
+  document.getElementById('pIcon').value=p?p.icon||'📋':'📋';
+  document.getElementById('pBadge').value=p?p.badgeLabel||'':'';
+  selBadgeColor=p?p.badgeColor||'green':'green';
   document.querySelectorAll('.bp-opt').forEach(el=>el.classList.toggle('sel',el.dataset.c===selBadgeColor));
-  document.getElementById('phDelBtn').style.display = p?'block':'none';
+  document.getElementById('phDelBtn').style.display=p?'block':'none';
   document.getElementById('phaseModal').classList.remove('hidden');
   setTimeout(()=>document.getElementById('pName').focus(),100);
 };
-
-window.pickBadge = function(el) {
+window.pickBadge=function(el){
   selBadgeColor=el.dataset.c;
   document.querySelectorAll('.bp-opt').forEach(b=>b.classList.remove('sel'));
   el.classList.add('sel');
 };
-
-window.savePhase = async function() {
+window.savePhase=async function(){
   const name=document.getElementById('pName').value.trim();
-  if(!name){ toast('⚠️ Phase name is required'); return; }
+  if(!name){toast('⚠️ Phase name is required');return;}
   const isNew=!editPhaseId;
   if(editPhaseId){
     const p=phases.find(x=>x.id===editPhaseId);
     if(p){
-      const old=p.name; p.name=name; p.desc=document.getElementById('pDesc').value.trim();
+      const old=p.name;p.name=name;p.desc=document.getElementById('pDesc').value.trim();
       p.icon=document.getElementById('pIcon').value.trim()||'📋';
       p.badgeLabel=document.getElementById('pBadge').value.trim();
       p.badgeColor=selBadgeColor;
@@ -799,29 +758,28 @@ window.savePhase = async function() {
     logAct('added',name,'New phase created',nid);
   }
   closeModal('phaseModal');
-  try{ await writeToDB(); toast(isNew?'✅ Phase added':'✅ Phase updated'); }
-  catch(e){ toast('❌ '+e.message); }
+  try{await writeToDB();toast(isNew?'✅ Phase added':'✅ Phase updated');}
+  catch(e){toast('❌ '+e.message);}
 };
-
-window.deletePhase = function() {
+window.deletePhase=function(){
   if(!editPhaseId)return;
   const p=phases.find(x=>x.id===editPhaseId);
-  showConfirm(`Delete "${p?.name}"?`,`All ${p?.tasks?.length||0} tasks will be removed.`, async()=>{
+  showConfirm(`Delete "${p?.name}"?`,`All ${p?.tasks?.length||0} tasks will be removed.`,async()=>{
     logAct('deleted',p.name,`Phase with ${p.tasks.length} tasks removed`);
-    try{ await remove(ref(db,'roadmap/phases/'+editPhaseId)); closeModal('phaseModal'); toast('🗑 Phase deleted'); }
-    catch(e){ toast('❌ '+e.message); }
+    try{await remove(ref(db,'roadmap/phases/'+editPhaseId));closeModal('phaseModal');toast('🗑 Phase deleted');}
+    catch(e){toast('❌ '+e.message);}
   });
 };
 
-// ── TASK MODAL ───────────────────────────────────────────────
-window.openTaskModal = function(phaseId, taskIdx) {
-  editTaskCtx={phaseId, idx:(taskIdx!==null&&taskIdx!==undefined)?taskIdx:null};
+// ── TASK MODAL ────────────────────────────────────────────
+window.openTaskModal=function(phaseId,taskIdx){
+  editTaskCtx={phaseId,idx:(taskIdx!==null&&taskIdx!==undefined)?taskIdx:null};
   const p=phases.find(x=>x.id===phaseId);
   const t=(editTaskCtx.idx!==null)?p?.tasks[editTaskCtx.idx]:null;
   document.getElementById('taskModalTitle').textContent=t?'Edit Task':'Add Task';
-  document.getElementById('tName').value  =t?t.name:'';
+  document.getElementById('tName').value=t?t.name:'';
   document.getElementById('tDetail').value=t?t.detail||'':'';
-  document.getElementById('tPri').value   =t?t.priority||'':'';
+  document.getElementById('tPri').value=t?t.priority||'':'';
   document.getElementById('tStatus').value=t?String(!!t.done):'false';
   document.getElementById('customTag').value='';
   activeTags=t?[...(t.tags||[])]:[];
@@ -830,18 +788,15 @@ window.openTaskModal = function(phaseId, taskIdx) {
   document.getElementById('taskModal').classList.remove('hidden');
   setTimeout(()=>document.getElementById('tName').focus(),100);
 };
-
-window.toggleTag = function(el) {
+window.toggleTag=function(el){
   const tag=el.dataset.tag;
   if(activeTags.includes(tag)){activeTags=activeTags.filter(t=>t!==tag);el.classList.remove('on');}
   else{activeTags.push(tag);el.classList.add('on');}
 };
-
 document.getElementById('customTag').addEventListener('keydown',e=>{
   if(e.key==='Enter'){e.preventDefault();const v=e.target.value.trim().toLowerCase().replace(/\s+/g,'-');if(v&&!activeTags.includes(v))activeTags.push(v);e.target.value='';}
 });
-
-window.saveTask = async function() {
+window.saveTask=async function(){
   const name=document.getElementById('tName').value.trim();
   if(!name){toast('⚠️ Task name is required');return;}
   const tags=[...activeTags];
@@ -871,8 +826,7 @@ window.saveTask = async function() {
   try{await writeToDB();toast(isNew?'✅ Task added':'✅ Task updated');}
   catch(e){toast('❌ '+e.message);}
 };
-
-window.deleteTask = function() {
+window.deleteTask=function(){
   const{phaseId,idx}=editTaskCtx;
   const p=phases.find(x=>x.id===phaseId),t=p?.tasks[idx];
   showConfirm(`Delete "${t?.name}"?`,'This task will be permanently removed.',async()=>{
@@ -881,8 +835,7 @@ window.deleteTask = function() {
     try{await writeToDB();toast('🗑 Task deleted');}catch(e){toast('❌ '+e.message);}
   });
 };
-
-window.cfmDelTask = function(phaseId,ti){
+window.cfmDelTask=function(phaseId,ti){
   const p=phases.find(x=>x.id===phaseId),t=p?.tasks[ti];
   if(!t)return;
   showConfirm(`Delete "${t.name}"?`,'This task will be permanently removed.',async()=>{
@@ -892,7 +845,7 @@ window.cfmDelTask = function(phaseId,ti){
   });
 };
 
-// ── CONFIRM ──────────────────────────────────────────────────
+// ── CONFIRM ───────────────────────────────────────────────
 function showConfirm(title,desc,onOk){
   document.getElementById('cfTitle').textContent=title;
   document.getElementById('cfDesc').textContent=desc;
@@ -901,9 +854,7 @@ function showConfirm(title,desc,onOk){
   btn.addEventListener('click',()=>{closeModal('confirmModal');onOk();});
   document.getElementById('confirmModal').classList.remove('hidden');
 }
-
-window.closeModal = function(id){ document.getElementById(id).classList.add('hidden'); };
-
+window.closeModal=function(id){document.getElementById(id).classList.add('hidden');};
 document.querySelectorAll('.modal-overlay').forEach(el=>
   el.addEventListener('click',e=>{if(e.target===el)closeModal(el.id);})
 );
@@ -914,11 +865,17 @@ document.addEventListener('keydown',e=>{
   }
 });
 
-// ── DEFAULT DATA ─────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+//  DEFAULT DATA — Updated with 5 new feature sets
+// ═══════════════════════════════════════════════════════════
 function getDefaults(){
   const t=()=>genId('t'), p=()=>genId('p');
   return [
-    {id:p(),icon:'✅',name:'Phase 0 — Already Shipped',desc:'Core features live in production. The foundation is solid.',badgeLabel:'COMPLETE',badgeColor:'green',tasks:[
+
+    // ─────────── PHASE 0 ───────────────────────────────────
+    {id:p(),icon:'✅',name:'Phase 0 — Already Shipped',
+     desc:'Core features live in production. The foundation is solid.',
+     badgeLabel:'COMPLETE',badgeColor:'green',tasks:[
       {id:t(),name:'Table management (up to 30 tables)',detail:'Default 5 tables, dynamic resize works correctly.',tags:[],priority:'',done:true},
       {id:t(),name:'Parcel / Takeaway + Standing order tracking',detail:'Tracked separately from dine-in with sequential naming.',tags:[],priority:'',done:true},
       {id:t(),name:'Real-time Firebase sync between Owner and Kitchen',detail:'WebSocket-based, instant across any network.',tags:[],priority:'',done:true},
@@ -932,43 +889,143 @@ function getDefaults(){
       {id:t(),name:'Guided tooltip tour (9+5 steps)',detail:'Auto-starts on load. Spotlights each feature.',tags:[],priority:'',done:true},
       {id:t(),name:'Netlify deployment + Sales Word document',detail:'Clean /owner, /kitchen URLs. Pricing, features, FAQ.',tags:[],priority:'',done:true},
     ]},
-    {id:p(),icon:'🔥',name:'Phase 1 — Ship Before First Sale',desc:'BLOCKERS — fix these before pitching to anyone.',badgeLabel:'SHIP NOW',badgeColor:'amber',tasks:[
-      {id:t(),name:'Fix Firebase security rules — no open read/write',detail:'Anyone with the DB URL can wipe all orders. Add Auth or passphrase.',tags:['blocker','security'],priority:'critical',done:false},
-      {id:t(),name:'White-glove onboarding for café owners',detail:'Firebase setup confuses non-tech owners. Do it for them — charge ₹500.',tags:['blocker','ux'],priority:'critical',done:false},
-      {id:t(),name:'2–3 min video walkthrough',detail:'Record a complete order flow. WhatsApp-shareable. Converts 5× better.',tags:['blocker','revenue'],priority:'critical',done:false},
-      {id:t(),name:'Fix "Open Kitchen Tab" URL for GitHub Pages',detail:'Hardcode the correct URL so it always opens demo-kitchen.html.',tags:['blocker','infra'],priority:'critical',done:false},
-      {id:t(),name:'Demo reset button',detail:'After a prospect clears tables they get blank screen. Add Reset.',tags:['ux'],priority:'high',done:false},
-      {id:t(),name:'GitHub Pages deployment',detail:'Push repo, enable Pages, get a shareable URL immediately.',tags:['infra'],priority:'high',done:false},
-      {id:t(),name:'WhatsApp OG preview meta tags',detail:'Add og:image, og:title so the link shows a card on WhatsApp.',tags:['growth','ux'],priority:'high',done:false},
+
+    // ─────────── PHASE 1 ───────────────────────────────────
+    // Original blockers + 3 new features from sprint (Recall, WhatsApp Bill, Landing Page)
+    {id:p(),icon:'🔥',name:'Phase 1 — Ship Before First Sale',
+     desc:'BLOCKERS + quick wins — must be done before the first pitch.',
+     badgeLabel:'SHIP NOW',badgeColor:'amber',tasks:[
+
+      // ── Original blockers ──
+      {id:t(),name:'Fix Firebase security rules — no open read/write',
+       detail:'Anyone with the DB URL can wipe all orders. Add Auth or uid-scoped rules before sharing with any café.',
+       tags:['blocker','security'],priority:'critical',done:false},
+      {id:t(),name:'White-glove onboarding for café owners',
+       detail:'Firebase setup confuses non-tech owners. Do it for them on their device — charge ₹500 setup fee.',
+       tags:['blocker','ux'],priority:'critical',done:false},
+      {id:t(),name:'2–3 min video walkthrough',
+       detail:'Record a complete order flow: open café → table order → kitchen display → payment. WhatsApp-shareable. Converts 5× better than docs.',
+       tags:['blocker','revenue'],priority:'critical',done:false},
+      {id:t(),name:'Fix "Open Kitchen Tab" URL for GitHub Pages',
+       detail:'Hardcode the correct full URL so the button always opens demo-kitchen.html on GitHub Pages.',
+       tags:['blocker','infra'],priority:'critical',done:false},
+      {id:t(),name:'Demo reset button',
+       detail:'After a prospect clears all tables they see a blank screen. Add a Reset button to replay the demo from scratch.',
+       tags:['ux'],priority:'high',done:false},
+      {id:t(),name:'GitHub Pages deployment',
+       detail:'Push repo, enable Pages, get a clean shareable URL immediately. Separate from Netlify prod.',
+       tags:['infra'],priority:'high',done:false},
+      {id:t(),name:'WhatsApp OG preview meta tags',
+       detail:'Add og:image, og:title, og:description so the demo link shows a rich preview card when shared on WhatsApp.',
+       tags:['growth','ux'],priority:'high',done:false},
+
+      // ── NEW: Recall from Kitchen (est. 2h) ──
+      {id:t(),name:'↩️ Recall from Kitchen',
+       detail:'Add "Recall from Kitchen" button in order modal when sentToKitchen: true && kitchenReady: false. On click → set sentToKitchen: false, kitchenReady: false in Firebase. Order becomes editable again (items, options, notes). Kitchen display removes the ticket instantly on recall. Show toast "Order recalled from kitchen". Est: 2 hours.',
+       tags:['ux'],priority:'high',done:false},
+
+      // ── NEW: WhatsApp Bill Share (est. 1h) ──
+      {id:t(),name:'📱 WhatsApp Bill Share',
+       detail:'Add "Share on WhatsApp" button in bill modal after payment. Format bill as clean text: café name, date, table/parcel, items with qty + price, total, payment mode (Cash/UPI). Open wa.me link with URI-encoded message. Works on mobile (native app) and desktop (WhatsApp Web). Test both Cash and UPI flows. Est: 1 hour.',
+       tags:['revenue','growth','ux'],priority:'high',done:false},
+
+      // ── NEW: Landing Page (est. 2d) ──
+      {id:t(),name:'🌐 Landing Page',
+       detail:'Separate from the app. Sections: Hero (headline + subheadline + demo GIF/screenshot), Features (4–5 key features with icons), Pricing (Starter free / Growth ₹999/mo / Pro ₹2499/mo), CTA ("Book a Free Demo" → opens wa.me with your number). Mobile responsive. Deploy on Netlify at separate subdomain. Basic SEO: title, meta description, og:image, og:title, canonical URL. Est: 2 days.',
+       tags:['growth','revenue'],priority:'high',done:false},
     ]},
-    {id:p(),icon:'🚀',name:'Phase 2 — First 10 Customers',desc:'Features that close deals and create word-of-mouth.',badgeLabel:'NEXT UP',badgeColor:'blue',tasks:[
-      {id:t(),name:'WhatsApp bill sharing button',detail:'One tap generates a bill and opens WhatsApp with pre-filled text.',tags:['revenue','growth'],priority:'high',done:false},
-      {id:t(),name:'QR code per table — customer sees order status',detail:'Customer scans → read-only order status page.',tags:['ux','revenue'],priority:'high',done:false},
-      {id:t(),name:'Firebase Auth — owner login with email + password',detail:'Replaces raw API key setup. Less confusing for non-tech users.',tags:['security','ux'],priority:'high',done:false},
-      {id:t(),name:'Daily WhatsApp sales summary to owner',detail:'End-of-day: total revenue, top item, cash/UPI split.',tags:['revenue','growth'],priority:'high',done:false},
-      {id:t(),name:'Multi-staff / waiter accounts',detail:'Waiter logins can take orders but not view sales.',tags:['revenue'],priority:'medium',done:false},
-      {id:t(),name:'Item-level notes (less sugar, no onion…)',detail:'Kitchen sees the note on the order card.',tags:['ux'],priority:'medium',done:false},
-      {id:t(),name:'Thermal receipt printing support',detail:'Print bill button for Bluetooth thermal printers.',tags:['revenue'],priority:'medium',done:false},
-      {id:t(),name:'Offline mode — queue orders when internet drops',detail:'Store in localStorage, auto-sync on restore.',tags:['ux','infra'],priority:'medium',done:false},
+
+    // ─────────── PHASE 2 ───────────────────────────────────
+    // Original tasks + Staff Account Creation
+    {id:p(),icon:'🚀',name:'Phase 2 — First 10 Customers',
+     desc:'Features that close deals, build trust, and create word-of-mouth.',
+     badgeLabel:'NEXT UP',badgeColor:'blue',tasks:[
+
+      {id:t(),name:'QR code per table — customer sees order status',
+       detail:'Customer scans → read-only order status page. Huge wow factor during demos.',
+       tags:['ux','revenue'],priority:'high',done:false},
+      {id:t(),name:'Firebase Auth — owner login with email + password',
+       detail:'Replaces raw API key setup. Far less confusing for non-tech owners.',
+       tags:['security','ux'],priority:'high',done:false},
+      {id:t(),name:'Daily WhatsApp sales summary to owner',
+       detail:'End-of-day automated message: total revenue, top-selling item, cash vs UPI split.',
+       tags:['revenue','growth'],priority:'high',done:false},
+
+      // ── NEW: Staff Account Creation (est. 2d) ──
+      {id:t(),name:'🔐 Staff Account Creation',
+       detail:'Add "Settings" tab in owner panel nav. Settings → "Kitchen Staff" section with Add Staff form (Name + Email + Password). On submit → createUserWithEmailAndPassword → write to authorizedUsers/{uid} with role: "kitchen". Show list of existing staff with name + email + role badge. "Remove Staff" → delete from authorizedUsers (Firebase Auth user stays, just loses access). Staff can only log into Kitchen Display, not Owner Panel. Owner Panel blocks role:"kitchen" users at auth check. Est: 2 days.',
+       tags:['security','ux'],priority:'high',done:false},
+
+      {id:t(),name:'Multi-staff / waiter accounts (role: waiter)',
+       detail:'Waiter logins can take orders but cannot view sales dashboard or change settings.',
+       tags:['revenue'],priority:'medium',done:false},
+      {id:t(),name:'Item-level notes (less sugar, no onion…)',
+       detail:'Kitchen sees the note on the order card in the ticket. Reduces verbal errors.',
+       tags:['ux'],priority:'medium',done:false},
+      {id:t(),name:'Thermal receipt printing support',
+       detail:'Print bill button that works with Bluetooth/USB thermal printers via WebUSB or print dialog.',
+       tags:['revenue'],priority:'medium',done:false},
+      {id:t(),name:'Offline mode — queue orders when internet drops',
+       detail:'Store pending orders in localStorage, auto-sync to Firebase when connection restores. Show "offline" banner.',
+       tags:['ux','infra'],priority:'medium',done:false},
     ]},
-    {id:p(),icon:'🔭',name:'Phase 3 — Growth & Retention',desc:'Features that retain customers and grow revenue per account.',badgeLabel:'FUTURE',badgeColor:'purple',tasks:[
-      {id:t(),name:'Customer-facing digital menu with QR per table',detail:'Customer scans and browses while waiting.',tags:['ux','revenue'],priority:'high',done:false},
-      {id:t(),name:'Razorpay / UPI payment integration',detail:'Customer pays directly from the digital menu.',tags:['revenue'],priority:'medium',done:false},
-      {id:t(),name:'Monthly GST report in portal-ready format',detail:'Pre-format Excel for direct GST portal upload.',tags:['revenue'],priority:'medium',done:false},
-      {id:t(),name:'Inventory / stock tracking per item',detail:'Auto-marks items unavailable when stock runs low.',tags:['ux'],priority:'medium',done:false},
-      {id:t(),name:'Customer loyalty — track repeat visitors',detail:'"10th visit free." Lookup by phone number.',tags:['growth'],priority:'low',done:false},
+
+    // ─────────── PHASE 3 ───────────────────────────────────
+    // Original tasks + Razorpay
+    {id:p(),icon:'🔭',name:'Phase 3 — Growth & Retention',
+     desc:'Features that retain customers and grow revenue per account.',
+     badgeLabel:'FUTURE',badgeColor:'purple',tasks:[
+
+      {id:t(),name:'Customer-facing digital menu with QR per table',
+       detail:'Customer scans and browses the full menu while waiting. Read-only, no ordering yet.',
+       tags:['ux','revenue'],priority:'high',done:false},
+      {id:t(),name:'Monthly GST report in portal-ready format',
+       detail:'Pre-format Excel exactly as required by GST portal for direct upload. Include GSTIN field in settings.',
+       tags:['revenue'],priority:'medium',done:false},
+      {id:t(),name:'Inventory / stock tracking per item',
+       detail:'Auto-marks items unavailable when stock count hits zero. Manual restock from menu management.',
+       tags:['ux'],priority:'medium',done:false},
+      {id:t(),name:'Customer loyalty — track repeat visitors',
+       detail:'"10th visit free." Lookup by phone number. Stamp card shown on order completion.',
+       tags:['growth'],priority:'low',done:false},
+
+      // ── NEW: Razorpay Basic Integration (est. 3d) ──
+      {id:t(),name:'💳 Razorpay Basic Integration + Feature Flags',
+       detail:'Owner panel Settings tab: show current plan prominently. "Upgrade Plan" button opens Razorpay checkout with correct amount. On payment success → write plan: "growth" or plan: "pro" to settings/plan in Firebase. Feature flags: Export (Excel/PDF) gated behind Growth+. Staff Accounts gated behind Growth+. Table count >5 gated behind Growth+. Show "Upgrade to unlock" prompt when free user hits a gated feature. Manual verification for now (check Razorpay dashboard + update Firebase manually if webhook not set up). Plans: Starter free / Growth ₹999/mo / Pro ₹2499/mo. Est: 3 days.',
+       tags:['revenue','infra'],priority:'high',done:false},
+
+      {id:t(),name:'Razorpay → customer UPI payment from digital menu',
+       detail:'Customer pays directly from the digital menu via Razorpay. Owner sees payment confirmed in order.',
+       tags:['revenue'],priority:'medium',done:false},
     ]},
-    {id:p(),icon:'💼',name:'Phase 4 — SaaS Scale',desc:'Self-serve product. Only after 10 paying customers.',badgeLabel:'SAAS',badgeColor:'red',tasks:[
-      {id:t(),name:'Self-serve onboarding — zero manual setup',detail:'Café signs up, system auto-provisions Firebase.',tags:['infra','revenue'],priority:'high',done:false},
-      {id:t(),name:'Subscription billing via Razorpay recurring',detail:'Monthly/annual plans charged automatically.',tags:['revenue'],priority:'high',done:false},
-      {id:t(),name:'Branded subdomain per café',detail:'Every café gets their own subdomain.',tags:['ux','growth'],priority:'medium',done:false},
-      {id:t(),name:'Multi-branch support — one login, multiple locations',detail:'Unlocks higher pricing for café chains.',tags:['revenue'],priority:'medium',done:false},
-      {id:t(),name:'Affiliate / referral programme dashboard',detail:'Tracked credits turn customers into your sales team.',tags:['growth'],priority:'medium',done:false},
+
+    // ─────────── PHASE 4 ───────────────────────────────────
+    {id:p(),icon:'💼',name:'Phase 4 — SaaS Scale',
+     desc:'Self-serve product. Only start after 10 paying customers.',
+     badgeLabel:'SAAS',badgeColor:'red',tasks:[
+      {id:t(),name:'Self-serve onboarding — zero manual setup',
+       detail:'Café signs up, system auto-provisions their Firebase project and writes initial config.',
+       tags:['infra','revenue'],priority:'high',done:false},
+      {id:t(),name:'Subscription billing via Razorpay recurring',
+       detail:'Monthly/annual plans charged automatically via Razorpay subscriptions. Stop chasing payments.',
+       tags:['revenue'],priority:'high',done:false},
+      {id:t(),name:'Branded subdomain per café (ramesh.cafemanager.in)',
+       detail:'Every café gets their own subdomain. Feels premium, increases perceived value, reduces churn.',
+       tags:['ux','growth'],priority:'medium',done:false},
+      {id:t(),name:'Multi-branch support — one login, multiple locations',
+       detail:'Unlocks higher pricing tier for café chains with 2–5 locations.',
+       tags:['revenue'],priority:'medium',done:false},
+      {id:t(),name:'Affiliate / referral programme dashboard',
+       detail:'Tracked referral credits turn happy customers into your sales team.',
+       tags:['growth'],priority:'medium',done:false},
+      {id:t(),name:'White-label version for resellers',
+       detail:'10 resellers × 10 cafés each = 100 customers with near-zero effort from you.',
+       tags:['growth','revenue'],priority:'low',done:false},
     ]},
   ];
 }
 
-// ── BOOT ─────────────────────────────────────────────────────
+// ── BOOT ──────────────────────────────────────────────────
 loadUser();
 initListeners();
 </script>
